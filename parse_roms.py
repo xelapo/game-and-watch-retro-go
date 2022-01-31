@@ -62,6 +62,7 @@ SAVE_SIZES = {
     "col": 60 * 1024,
     "sg": 60 * 1024,
     "pce": 76 * 1024,
+    "msx": 260 * 1024,
     "gw": 4 * 1024,
 }
 
@@ -888,6 +889,33 @@ class ROMParser:
         total_rom_size += rom_size
         total_img_size += img_size
         build_config += "#define ENABLE_EMULATOR_GW\n" if rom_size > 0 else ""
+
+        save_size, rom_size, img_size = self.generate_system(
+            "Core/Src/retro-go/msx_roms.c",
+            "MSX",
+            "msx_system",
+            "msx",
+            ["rom","fdi"],
+            "SAVE_MSX_",
+            romdef["msx"]
+        )
+        total_save_size += save_size
+        total_rom_size += rom_size
+        total_img_size += img_size
+        #bios
+        save_size, rom_size, img_size = self.generate_system(
+            "Core/Src/retro-go/msx_bios.c",
+            "MSX_BIOS",
+            "msx_bios",
+            "msx_bios",
+            ["rom","sha"],
+            "SAVE_MSXB_",
+            romdef["msx_bios"]
+        )
+        total_save_size += save_size
+        total_rom_size += rom_size
+        total_img_size += img_size
+        build_config += "#define ENABLE_EMULATOR_MSX\n" if rom_size > 0 else ""
 
         total_size = total_save_size + total_rom_size + total_img_size
 
