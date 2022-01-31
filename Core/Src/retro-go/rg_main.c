@@ -643,14 +643,12 @@ void app_start_logo()
     retro_logo_image *l_top = (retro_logo_image *)(tab->img_header);
     retro_logo_image *l_bot = (retro_logo_image *)(tab->img_logo);
 
-    const retro_logo_image* logos[] =   {&logo_nitendo, &logo_sega,     &logo_nitendo, &logo_sega,  &logo_nitendo, &logo_pce,    &logo_sega,  &logo_coleco};
-    const retro_logo_image* headers[] = {&header_gb,    &header_sg1000, &header_nes,   &header_gg,  &header_gw,    &header_pce,  &header_sms, &header_col};
-    for (int i = 0; i < 8; i++)
+    const retro_logo_image* logos[] =   {&logo_nitendo, &logo_sega,     &logo_nitendo, &logo_sega,  &logo_nitendo, &logo_pce,    &logo_sega,  &logo_coleco, &logo_microsoft};
+    const retro_logo_image* headers[] = {&header_gb,    &header_sg1000, &header_nes,   &header_gg,  &header_gw,    &header_pce,  &header_sms, &header_col, &header_msx};
+    for (int i = 0; i < 9; i++)
     {
         if (l_top == (retro_logo_image *)headers[i])
-        {
             l_bot = (retro_logo_image *)logos[i];
-        }
         odroid_overlay_draw_fill_rect(0, 0, 320, 240, curr_colors->bg_c);
         odroid_overlay_draw_logo((320 - ((retro_logo_image *)(headers[i]))->width) / 2, 90, (retro_logo_image *)(headers[i]), curr_colors->sel_c);
         odroid_overlay_draw_logo((320 - ((retro_logo_image *)(logos[i]))->width) / 2, 160 + (40 - ((retro_logo_image *)(logos[i]))->height) / 2, (retro_logo_image *)(logos[i]), curr_colors->dis_c);
