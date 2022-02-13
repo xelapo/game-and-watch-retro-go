@@ -73,6 +73,7 @@ retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map016.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map018.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map019.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map021.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map020.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map022.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map023.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map024.c \
@@ -91,6 +92,7 @@ retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map066.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map070.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map071.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map073.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map074.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map075.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map076.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map078.c \
@@ -99,14 +101,21 @@ retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map085.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map087.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map093.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map094.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map119.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map160.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map162.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map185.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map191.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map192.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map193.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map194.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map195.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map228.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map206.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map229.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map231.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map252.c \
+retro-go-stm32/nofrendo-go/components/nofrendo/mappers/map253.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/nes/nes_apu.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/nes/nes_input.c \
 retro-go-stm32/nofrendo-go/components/nofrendo/nes/nes_mem.c \
