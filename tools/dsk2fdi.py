@@ -4,15 +4,6 @@ import sys
 
 SecSizes=[128,256,512,1024,4096,0]
 FDIDiskLabel = ""
-class FDIDisk():
-    def __init__(self,Sides,Tracks,Sectors,SecSize,Data,DataSize,Header):
-        self.Sides = Sides
-        self.Tracks = Tracks
-        self.Sectors = Sectors
-        self.SecSize = SecSize
-        self.Data = Data
-        self.DataSize = DataSize
-        self.Header = Header
 
 def newFDI(Sides,Tracks,Sectors,SecSize):
     # Find sector size code
