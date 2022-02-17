@@ -605,13 +605,15 @@ class ROMParser:
 
             output_file.write_bytes(output_data)
 
-    def _convert_dsk(self, variable_name, dsk):
+    def _convert_dsk(self, variable_name, dsk, compress):
         """This will convert dsk image to fdi."""
         if not (dsk.publish):
             return
+        if compress is None:
+            compress="none"
 
         if "msx_system" in variable_name:  # MSX
-            subprocess.check_output("python3 tools/dsk2fdi.py \""+str(dsk.path)+"\"", shell=True)
+            subprocess.check_output("python3 tools/dsk2fdi.py \""+str(dsk.path)+"\" "+compress, shell=True)
 
     def generate_system(
         self,
@@ -625,6 +627,7 @@ class ROMParser:
         compress: str = None,
         compress_gb_speed: bool = False,
     ) -> int:
+        print("generate_system compress=",compress)
         import json;
         script_path = Path(__file__).parent
         json_file = script_path / "roms" / str(folder + ".json")
@@ -647,7 +650,6 @@ class ROMParser:
                 return []
 
             roms = []
-#            print("find_compressed_roms romdefs =",romdefs)
             for e in extensions:
                 roms += self.find_roms(system_name, folder, e + "." + compress, romdefs)
             return roms
@@ -672,7 +674,8 @@ class ROMParser:
                     pbar.set_description(f"Converting: {system_name} / {r.name}")
                 self._convert_dsk(
                     variable_name,
-                    r)
+                    r,
+                    compress)
             # Re-generate the fdi disks list
             fdi_disks = find_fdi_disks()
         #remove .dsk from list
@@ -938,7 +941,8 @@ class ROMParser:
             "msx",
             ["rom","dsk"],
             "SAVE_MSX_",
-            romdef["msx"]
+            romdef["msx"],
+            args.compress
         )
         total_save_size += save_size
         total_rom_size += rom_size

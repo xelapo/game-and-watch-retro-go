@@ -4,80 +4,121 @@ import sys
 
 SecSizes=[128,256,512,1024,4096,0]
 FDIDiskLabel = ""
+#static const struct { int Sides,Tracks,Sectors,SecSize; } Formats[] =
+#{
+#  { 2,80,9,512 },  /* FMT_MSXDSK - MSX disk */
+#};
 
-def newFDI(Sides,Tracks,Sectors,SecSize):
+def compress_lzma(data, level=None):
+    import lzma
+    if level == None or level != 'lzma':
+        return data
+
+    compressed_data = lzma.compress(
+        data,
+        format=lzma.FORMAT_ALONE,
+        filters=[
+            {
+                "id": lzma.FILTER_LZMA1,
+                "preset": 6,
+                "dict_size": 16 * 1024,
+            }
+        ],
+    )
+
+    compressed_data = compressed_data[13:]
+
+    return compressed_data
+
+def createFDI(Sides,Tracks,Sectors,SecSize,diskBytesArray,compress=None):
     # Find sector size code
     L = 0
+    print("disk size =",len(diskBytesArray))
     while SecSizes[L] and SecSizes[L]!=SecSize:
-        if SecSizes[L]==0: return(0)
+        if SecSizes[L]==0: return bytearray(0)
         L = L + 1
+    diskDataOffset = 0
+
     # Allocate memory */
-    K = int(Sides*Tracks*Sectors*SecSize+len(FDIDiskLabel))
-    I = int(Sides*Tracks*(Sectors+1)*7+14)
-    diskArray = bytearray(I+K)
+    diskDataLength = int(Sides*Tracks*Sectors*SecSize+len(FDIDiskLabel))
+    fdiDataLength = int(Sides*Tracks*(Sectors+1)*7+14) # 14 = header size
+    fdiDiskArray = bytearray(fdiDataLength+diskDataLength)
 
     # FDI magic number
-    diskArray[0] = ord('F')
-    diskArray[1] = ord('D')
-    diskArray[2] = ord('I')
+    fdiDiskArray[0] = ord('F')
+    fdiDiskArray[1] = ord('D')
+    fdiDiskArray[2] = ord('I')
 
     # Disk description
-    diskArray[I:I+len(FDIDiskLabel)] = FDIDiskLabel.encode()
+    fdiDiskArray[fdiDataLength:fdiDataLength+len(FDIDiskLabel)] = FDIDiskLabel.encode()
     #Write protection (1=ON)
-    diskArray[3]  = 1
-    diskArray[4]  = Tracks&0xFF
-    diskArray[5]  = Tracks>>8
-    diskArray[6]  = Sides&0xFF
-    diskArray[7]  = Sides>>8
+    fdiDiskArray[3]  = 1
+    #Set compression byte (not part of the FDI specification)
+    if compress == 'lzma':
+        print("Compressed",compress)
+        fdiDiskArray[3]  +=2
+    fdiDiskArray[4]  = Tracks&0xFF
+    fdiDiskArray[5]  = Tracks>>8
+    fdiDiskArray[6]  = Sides&0xFF
+    fdiDiskArray[7]  = Sides>>8
     # Disk description offset
-    diskArray[8]  = I&0xFF
-    diskArray[9]  = I>>8
-    I += len(FDIDiskLabel)
+    fdiDiskArray[8]  = fdiDataLength&0xFF
+    fdiDiskArray[9]  = fdiDataLength>>8
     # Sector data offset
-    diskArray[10] = I&0xFF
-    diskArray[11] = I>>8
+    fdiDataLength += len(FDIDiskLabel)
+    fdiDiskArray[10] = fdiDataLength&0xFF
+    fdiDiskArray[11] = fdiDataLength>>8
     # Track directory offset
-    diskArray[12] = 0
-    diskArray[13] = 0
+    fdiDiskArray[12] = 0
+    fdiDiskArray[13] = 0
 
     offset = 14
-    J = 0
-    K = 0
-    while J<Sides*Tracks :
+    track = 0
+    trackAddress = 0
+    currentAddress = 0
+    fdiDataWriteOffset = fdiDataLength
+    diskDataReadOffset = 0
+    while track<Sides*Tracks :
         # Create track entry
-        diskArray[offset+0] = K&0xFF
-        diskArray[offset+1] = (K>>8)&0xFF
-        diskArray[offset+2] = (K>>16)&0xFF
-        diskArray[offset+3] = (K>>24)&0xFF
+        fdiDiskArray[offset+0] = trackAddress&0xFF
+        fdiDiskArray[offset+1] = (trackAddress>>8)&0xFF
+        fdiDiskArray[offset+2] = (trackAddress>>16)&0xFF
+        fdiDiskArray[offset+3] = (trackAddress>>24)&0xFF
         # Reserved bytes
-        diskArray[offset+4] = 0
-        diskArray[offset+5] = 0
-        diskArray[offset+6] = Sectors
+        fdiDiskArray[offset+4] = 0
+        fdiDiskArray[offset+5] = 0
+        fdiDiskArray[offset+6] = Sectors
         # For all sectors on a track...
-        I = 0
-        N = 0
+        sectorId = 0
+        sectorAddress = 0
         offset+=7
-        while I<Sectors:
+        while sectorId<Sectors:
+            sectorData = compress_lzma(diskBytesArray[diskDataReadOffset:diskDataReadOffset+SecSize],compress)
             # Create sector entry
-            diskArray[offset+0] = int(J/Sides)
-            diskArray[offset+1] = J%Sides
-            diskArray[offset+2] = I+1
-            diskArray[offset+3] = L
+            fdiDiskArray[offset+0] = int(track/Sides)
+            fdiDiskArray[offset+1] = track%Sides
+            fdiDiskArray[offset+2] = sectorId+1
+            fdiDiskArray[offset+3] = L
             # CRC marks and "deleted" bit (D00CCCCC)
-            diskArray[offset+4] = (1<<L)
-            diskArray[offset+5] = N&0xFF
-            diskArray[offset+6] = N>>8
+            fdiDiskArray[offset+4] = (1<<L)
+            fdiDiskArray[offset+5] = sectorAddress&0xFF
+            fdiDiskArray[offset+6] = sectorAddress>>8
 
-            I+=1
+            # write sector data at correct address
+            fdiDiskArray[fdiDataWriteOffset:fdiDataWriteOffset+len(sectorData)] = sectorData
+
+            sectorId+=1
             offset+=7
-            N+=SecSize
+            sectorAddress+=len(sectorData)
+            diskDataReadOffset+=SecSize
+            fdiDataWriteOffset+=len(sectorData)
+            trackAddress+=len(sectorData)
 
-        K+=Sectors*SecSize
-        J+=1
+        track+=1
 
-    return diskArray
+    return fdiDiskArray[0:fdiDataWriteOffset]
 
-def analyzeMsxDsk(dskFile,fileName):
+def analyzeMsxDsk(dskFile,fileName,compress=None):
     dskFile.seek(0, os.SEEK_END)
     size = dskFile.tell()
     dskFile.seek(0, os.SEEK_SET)
@@ -109,14 +150,7 @@ def analyzeMsxDsk(dskFile,fileName):
         K = int(size/I/N/L)
 
     # Create a new disk image
-    diskArray = newFDI(K,I,N,L)
-
-    # Make sure we do not read too much data
-    I = K*I*N*L
-    if size > I : size = I
-
-    offset = diskArray[10]+(diskArray[11]<<8)
-    diskArray[offset:len(diskArray)] = dskFile.read(len(diskArray) - offset)
+    diskArray = createFDI(K,I,N,L,dskFile.read(),compress)
 
     return diskArray
 
@@ -126,9 +160,7 @@ def analyzeRawDsk(dskFile,fileName):
     dskFile.seek(0, os.SEEK_SET)
 
     if size == 2*80*9*512:
-        diskArray = newFDI(2,80,9,512)
-        offset = diskArray[10]+(diskArray[11]<<8)
-        diskArray[offset:len(diskArray)] = dskFile.read(len(diskArray) - offset)
+        diskArray = createFDI(2,80,9,512,dskFile.read(),compress)
     else :
         diskArray = bytearray(0)
 
@@ -136,12 +168,16 @@ def analyzeRawDsk(dskFile,fileName):
 
 n = len(sys.argv)
 
-if n < 2: print("Usage :\ndsk2fdi.py file.dsk\n"); sys.exit(0)
+if n < 2: print("Usage :\ndsk2fdi.py file.dsk [compress]\n"); sys.exit(0)
+if n == 2:
+    compress=None
+else:
+    compress=sys.argv[2]
 
 # Open file and find its size
 print("Opening "+sys.argv[1])
 dskFile = open(sys.argv[1], 'rb')
-fdiArray = analyzeMsxDsk(dskFile,sys.argv[1])
+fdiArray = analyzeMsxDsk(dskFile,sys.argv[1],compress)
 if len(fdiArray) > 0 :
     outFile = sys.argv[1].replace(".dsk",".dsk.fdi")
     print("File is MSX dsk file, saving "+outFile)
