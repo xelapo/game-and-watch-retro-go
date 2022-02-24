@@ -3,7 +3,7 @@
 
 int msx_start(int NewMode,int NewRAMPages,int NewVRAMPages, unsigned char *SaveState);
 int reset_msx(int NewMode,int NewRAMPages,int NewVRAMPages);
-byte msx_change_disk(byte N,const char *FileName,const char *Address);
+byte msx_change_disk(byte N,const char *FileName);
 int SaveMsxStateFlash(unsigned char *address, int MaxSize);
 int LoadMsxStateFlash(unsigned char *Buf);
 

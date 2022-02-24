@@ -97,7 +97,7 @@ const char *ROMName[MAXCARTS] = { "CARTA.ROM","CARTB.ROM" };
 byte *SRAMData[MAXSLOTS];          /* SRAM (battery backed)  */
 
 /** Disk images used by fMSX *********************************/
-const char *DSKName[MAXDRIVES] = { "DRIVEA.DSK","DRIVEB.DSK" };
+char currentDiskName[80];           /* Name of current disk */
 
 /** Soundtrack logging ***************************************/
 const char *SndName = "LOG.MID";   /* Sound log file         */
@@ -327,6 +327,7 @@ int msx_start(int NewMode,int NewRAMPages,int NewVRAMPages, unsigned char *SaveS
   SaveCMOS    = 0;
   FMPACKey    = 0x0000;
   ExitNow     = 0;
+  currentDiskName[0] = 0;
 
   /* Zero cartridge related data */
   for(J=0;J<MAXSLOTS;++J)
@@ -399,8 +400,8 @@ int msx_start(int NewMode,int NewRAMPages,int NewVRAMPages, unsigned char *SaveS
   /* If selected game is a disk, try loading it */
   if (strcmp(ACTIVE_FILE->ext,"fdi") == 0) {
     FDD[0].Verbose=Verbose&0x04;
-    if(msx_change_disk(0,ACTIVE_FILE->name,(const char *)(ACTIVE_FILE->address)))
-    if(Verbose) printf("Inserting %s into drive %c\n",DSKName[0],0+'A');
+    if(msx_change_disk(0,ACTIVE_FILE->name))
+      if(Verbose) printf("Inserting %s into drive %c\n",ACTIVE_FILE->name,0+'A');
   }
 
   // Load State if needed
@@ -2023,7 +2024,7 @@ char *MakeFileName(const char *Name,const char *Ext)
 /** image if Name=0 was given. Creates a new disk image if  **/
 /** Name="" was given. Returns 1 on success or 0 on failure.**/
 /*************************************************************/
-byte msx_change_disk(byte N,const char *FileName,const char *Address)
+byte msx_change_disk(byte N,const char *FileName)
 {
   int NeedState;
   byte *P;
@@ -2047,8 +2048,9 @@ byte msx_change_disk(byte N,const char *FileName,const char *Address)
     /* Update pointer to data */
     P = disk_file->address;
     if(Verbose) printf("Found %s.%s:\n",disk_file->name,disk_file->ext);
-    if (LoadFDIFlash(&FDD[N],FileName,disk_file->address,disk_file->size,FMT_AUTO))
-      return 1;
+    LoadFDIFlash(&FDD[N],FileName,disk_file->address,disk_file->size,FMT_AUTO);
+    strcpy(currentDiskName,FileName);
+    return 1;
   } else {
     if(Verbose) printf("Problem loading disk : %s not found\n",FileName);
     return 0;
@@ -2472,7 +2474,7 @@ static void SaveFlashSaveData(unsigned char *dest, unsigned char *src, int size)
 int SaveMsxStateFlash(unsigned char *address, int MaxSize)
 {
   unsigned int State[256],Size;
-  static byte Header[16] = "STE\032\003\0\0\0\0\0\0\0\0\0\0\0";
+  static byte Header[16] = "STE\032\004\0\0\0\0\0\0\0\0\0\0\0";
   unsigned int I,J,K;
 
   // Convert mem mapped pointer to flash address
@@ -2533,6 +2535,7 @@ int SaveMsxStateFlash(unsigned char *address, int MaxSize)
 
   /* Write out data structures */
   SaveDATA(Header,16);
+  SaveDATA(currentDiskName,80);
   SaveSTRUCT(MSXCPU);
   SaveSTRUCT(PPI);
   SaveSTRUCT(VDP);
@@ -2563,7 +2566,7 @@ int LoadMsxStateFlash(unsigned char *Buf)
   /* Read and check the header */
   LoadDATA(Header,16);
 
-  if(memcmp(Header,"STE\032\003",5))
+  if(memcmp(Header,"STE\032\004",5))
   {
     return(-1);
   }
@@ -2577,6 +2580,7 @@ int LoadMsxStateFlash(unsigned char *Buf)
   }
 
   /* Load hardware state */
+  LoadDATA(currentDiskName,80);
   LoadSTRUCT(MSXCPU);
   LoadSTRUCT(PPI);
   LoadSTRUCT(VDP);
@@ -2670,6 +2674,11 @@ int LoadMsxStateFlash(unsigned char *Buf)
   OPLL.Changed    = (1<<YM2413_CHANNELS)-1;
   OPLL.PChanged   = (1<<YM2413_CHANNELS)-1;
   OPLL.DChanged   = (1<<YM2413_CHANNELS)-1;
+
+  /* Load correct disk if needed */
+  if (strlen(currentDiskName) != 0) {
+    msx_change_disk(0,currentDiskName);
+  }
 
   /* Return amount of data read */
   return(Size);

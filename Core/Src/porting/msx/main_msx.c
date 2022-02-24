@@ -37,6 +37,13 @@ static odroid_gamepad_state_t previous_joystick_state;
 int msx_button_a_key_index = 5; /* KBD_SPACE index */
 int msx_button_b_key_index = 43; /* n key index */
 
+/* strings for options */
+static char disk_name[128];
+static char msx_name[6];
+static char key_name[6];
+static char a_button_name[6];
+static char b_button_name[6];
+
 static bool msx_system_LoadState(char *pathName)
 {
     int size = LoadMsxStateFlash(ACTIVE_FILE->save_address);
@@ -124,13 +131,13 @@ static bool update_disk_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t
     disk_file = rom_get_ext_file_at_index(msx_system,MSX_DISK_EXTENSION,selected_disk_index);
     if (event == ODROID_DIALOG_ENTER) {
         if (disk_count > 0) {
-            msx_change_disk(0,disk_file->name,disk_file->address);
+            msx_change_disk(0,disk_file->name);
         }
     }
     if (disk_count > 0) {
-    strcpy(option->value, disk_file->name);
+        strcpy(option->value, disk_file->name);
     } else {
-    strcpy(option->value, "No disk");
+        strcpy(option->value, "No disk");
     }
     return event == ODROID_DIALOG_ENTER;
 }
@@ -377,13 +384,8 @@ void Keyboard(void)
 }
 
 static void createOptionMenu(odroid_dialog_choice_t *options) {
-    char disk_name[128];
-    char msx_name[6];
-    char key_name[6];
-    char a_button_name[6];
-    char b_button_name[6];
     int index=0;
-    if (strcmp(ROM_EXT,"fdi") == 0) {
+    if (strcmp(ROM_EXT,MSX_DISK_EXTENSION) == 0) {
         options[index].id = 100;
         options[index].label = "Change Dsk";
         options[index].value = disk_name;
