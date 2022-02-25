@@ -655,6 +655,14 @@ class ROMParser:
 
         def find_fdi_disks():
             disks = self.find_roms(system_name, folder, "dsk.fdi", romdefs)
+            # If a disk name ends with _no_save then it means that we shouldn't
+            # allocate save space for this disk (to use with multi disks games
+            # as they only need to get a save for the first disk)
+            for disk in disks:
+                suffix = "_no_save"
+                if disk.name.endswith(suffix) :
+                    disk.name = disk.name[:-len(suffix)]
+                    disk.enable_save = False
             return disks
 
         def contains_rom_by_name(rom, roms):
