@@ -521,7 +521,6 @@ void RefreshLine3(register byte Y)
 {
 	register pixel_t *P;
 	register byte X,K,*T,*G;
-	printf("RefreshLine3\n");
 
 	P=RefreshBorder(Y,XPal[BGColor]);
 	if(!P) return;
@@ -550,7 +549,6 @@ void RefreshLine4(register byte Y)
 	register byte K,X,C,*T,*R;
 	register int I,J;
 	byte ZBuf[320];
-	printf("RefreshLine4\n");
 
 	P=RefreshBorder(Y,XPal[BGColor]);
 	if(!P) return;
@@ -589,7 +587,6 @@ void RefreshLine5(register byte Y)
 	register pixel_t *P;
 	register byte I,X,*T,*R;
 	byte ZBuf[320];
-	printf("RefreshLine5\n");
 
 	P=RefreshBorder(Y,XPal[BGColor]);
 	if(!P) return;
@@ -662,7 +659,6 @@ void RefreshLine7(register byte Y)
 	register pixel_t *P;
 	register byte C,X,*T,*R;
 	byte ZBuf[320];
-	printf("RefreshLine7\n");
 
 	P=RefreshBorder(Y,XPal[BGColor]);
 	if(!P) return;
@@ -698,7 +694,6 @@ void RefreshLine8(register byte Y)
 	register pixel_t *P;
 	register byte C,X,*T,*R;
 	byte ZBuf[320];
-	printf("RefreshLine8\n");
 
 	P=RefreshBorder(Y,BPal[VDP[7]]);
 	if(!P) return;
@@ -729,7 +724,6 @@ void RefreshLine10(register byte Y)
 	register byte C,X,*T,*R;
 	register int J,K;
 	byte ZBuf[320];
-	printf("RefreshLine10\n");
 
 	P=RefreshBorder(Y,BPal[VDP[7]]);
 	if(!P) return;
@@ -768,7 +762,6 @@ void RefreshLine12(register byte Y)
 	register byte C,X,*T,*R;
 	register int J,K;
 	byte ZBuf[320];
-	printf("RefreshLine12\n");
 
 	P=RefreshBorder(Y,BPal[VDP[7]]);
 	if(!P) return;
@@ -811,7 +804,6 @@ void RefreshLineTx80(register byte Y)
 {
 	register pixel_t *P,FC,BC;
 	register byte X,M,*T,*C,*G;
-	printf("RefreshLineTx80\n");
 
 	BC=XPal[BGColor];
 	P=RefreshBorder(Y,BC);
