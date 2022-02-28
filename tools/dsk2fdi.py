@@ -4,10 +4,6 @@ import sys
 
 SecSizes=[128,256,512,1024,4096,0]
 FDIDiskLabel = ""
-#static const struct { int Sides,Tracks,Sectors,SecSize; } Formats[] =
-#{
-#  { 2,80,9,512 },  /* FMT_MSXDSK - MSX disk */
-#};
 
 def compress_lzma(data, level=None):
     import lzma
@@ -37,7 +33,6 @@ def createFDI(Sides,Tracks,Sectors,SecSize,diskBytesArray,compress=None):
     while SecSizes[L] and SecSizes[L]!=SecSize:
         if SecSizes[L]==0: return bytearray(0)
         L = L + 1
-    diskDataOffset = 0
 
     # Allocate memory */
     diskDataLength = int(Sides*Tracks*Sectors*SecSize+len(FDIDiskLabel))
@@ -116,42 +111,6 @@ def createFDI(Sides,Tracks,Sectors,SecSize,diskBytesArray,compress=None):
 
     return fdiDiskArray[0:fdiDataWriteOffset]
 
-def analyzeMsxDsk(dskFile,fileName,compress=None):
-    dskFile.seek(0, os.SEEK_END)
-    size = dskFile.tell()
-    dskFile.seek(0, os.SEEK_SET)
-
-    # Read header
-    content = dskFile.read(32)
-    dskFile.seek(0, os.SEEK_SET)
-    if content[0]!=0xE9 and content[0]!=0xEB :
-        return bytearray(0)
-
-    # Check media descriptor
-    if(content[21]<0xF8) :
-        return bytearray(0)
-
-    # Compute disk geometry
-    K = int(content[26]+(content[27]<<8))      # Heads
-    N = int(content[24]+(content[25]<<8))      # Sectors
-    L = int(content[11]+(content[12]<<8))      # SecSize
-    I = int(content[19]+(content[20]<<8))      # Total S.
-    if K == 0 or N == 0:
-        I = int(0)                             # Tracks
-    else :
-        I = int(I/K/N)                         # Tracks
-
-    # Number of heads CAN BE WRONG */
-    if I == 0 or N == 0 or L == 0:
-        K = int(0)
-    else :
-        K = int(size/I/N/L)
-
-    # Create a new disk image
-    diskArray = createFDI(K,I,N,L,dskFile.read(),compress)
-
-    return diskArray
-
 def analyzeRawDsk(dskFile,fileName):
     dskFile.seek(0, os.SEEK_END)
     size = dskFile.tell()
@@ -175,27 +134,16 @@ else:
 # Open file and find its size
 print("Opening "+sys.argv[1])
 dskFile = open(sys.argv[1], 'rb')
-fdiArray = analyzeMsxDsk(dskFile,sys.argv[1],compress)
+fdiArray = analyzeRawDsk(dskFile,sys.argv[1])
 if len(fdiArray) > 0 :
     outFile = sys.argv[1]+".fdi"
-    print("File is MSX dsk file, saving "+outFile)
+    print("File converted, saving "+outFile)
     newfile=open(outFile,'wb')
     newfile.write(fdiArray)
     newfile.close()
     dskFile.close()
     print("Done")
     sys.exit(0)
-else :
-    fdiArray = analyzeRawDsk(dskFile,sys.argv[1])
-    if len(fdiArray) > 0 :
-        outFile = sys.argv[1]+".fdi"
-        print("File is RAW dsk file, saving "+outFile)
-        newfile=open(outFile,'wb')
-        newfile.write(fdiArray)
-        newfile.close()
-        dskFile.close()
-        print("Done")
-        sys.exit(0)
 
 print("Failed")
 #TODO : check if file is not already a FDI file
