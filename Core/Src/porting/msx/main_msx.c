@@ -131,6 +131,7 @@ static bool update_disk_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t
     disk_file = (retro_emulator_file_t *)rom_get_ext_file_at_index(msx_system,MSX_DISK_EXTENSION,selected_disk_index);
     if (event == ODROID_DIALOG_ENTER) {
         if (disk_count > 0) {
+            msx_change_disk(0,NULL); // Eject current disk
             msx_change_disk(0,disk_file->name);
         }
     }
