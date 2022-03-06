@@ -68,13 +68,27 @@
 #endif
 
 #include "rg_i18n_en_us.c"
+#if INCLUDED_ES_ES == 1
 #include "rg_i18n_es_es.c"
+#endif
+#if INCLUDED_PT_PT == 1
 #include "rg_i18n_pt_pt.c"
+#endif
+#if INCLUDED_FR_FR == 1
 #include "rg_i18n_fr_fr.c"
+#endif
+#if INCLUDED_ZH_CN == 1
 #include "rg_i18n_zh_cn.c"
+#endif
+#if INCLUDED_ZHT_TW == 1
 #include "rg_i18n_zh_tw.c"
+#endif
+#if INCLUDED_KO_KR == 1
 #include "rg_i18n_ko_kr.c"
+#endif
+#if INCLUDED_JA_JP == 1
 #include "rg_i18n_ja_jp.c"
+#endif
 
 static uint16_t overlay_buffer[ODROID_SCREEN_WIDTH * 12 * 2] __attribute__((aligned(4)));
 
@@ -221,7 +235,7 @@ const lang_t *gui_lang[8] = {
 
 lang_t *curr_lang = &lang_en_us;
 lang_t *curr_romlang = &lang_en_us;
-const int gui_lang_count = 7;
+const int gui_lang_count = 8;
 
 int i18n_get_text_height()
 {

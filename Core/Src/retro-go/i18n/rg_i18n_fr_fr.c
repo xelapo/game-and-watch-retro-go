@@ -1,4 +1,13 @@
-
+/*
+*********************************************************
+*                Warning!!!!!!!                         *
+*  This file must be saved with Windows 1252 Encoding   *
+*********************************************************
+*/
+#if !defined (INCLUDED_FR_FR)
+#define INCLUDED_FR_FR 1
+#endif
+#if INCLUDED_FR_FR == 1
 //#include "rg_i18n_lang.h"
 // Stand French
 
@@ -169,3 +178,5 @@ const lang_t lang_fr_fr LANG_DATA = {
     //=====================================================================
     //           ------------ end ---------------
 };
+
+#endif
