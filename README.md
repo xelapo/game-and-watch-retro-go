@@ -3,6 +3,12 @@
 # NewUI howto
 Please run `make help` to see more information.
 
+來自[maxxkao](http://maxxkao.blogspot.com/)的刷機攻略：
+
+[Nintendo Game & Watch 刷機完全攻略](https://maxxkao.blogspot.com/2022/01/game-watch.html)
+
+[Zelda Game & Watch Dual System 薩爾達機刷雙系統完全攻略](https://maxxkao.blogspot.com/2022/02/zelda-game-watch-dual-boot-wip.html)
+
 ## **Undocumented 256k BANK used by default**
  Now NewUI used BANK as undocumented size 256k by default, It's required [patched version of openocd](https://github.com/kbeckmann/ubuntu-openocd-git-builder) to work. You can set `BIG_BANK=0` disabled it to use 128k BANK size.
 
@@ -17,10 +23,11 @@ Expert `UICODEPAGE=lang` set the ui display language, default `UICODEPAGE=CODEPA
 - 949  : 한국어 (translation by [Augen(히힛마스터)](https://github.com/#))
 - 12521 : Español (translation by [Icebox2](https://github.com/Icebox2))
 - 12522 : Portuguese (translation by [DefKorns](https://github.com/DefKorns))
+- 12523 : Français (translation by [Narkoa](https://github.com/Narkoa))
 - 932 : 日本語(Wait for translate support)
 
 You can set `[OPT]=[0|1]` to include or exclude some language, List of `OPT` parameter:
-`EN_US`  English; `ES_ES`  Español; `PT_PT` Portuguese; `ZH_CN` 简体中文;`ZH_TW` 繁體中文;`KO_KR` 한국어;`JA_JP` 日本語;
+`EN_US`  English; `ES_ES`  Español; `PT_PT` Portuguese; `FR_FR` Français; `ZH_CN` 简体中文;`ZH_TW` 繁體中文;`KO_KR` 한국어;`JA_JP` 日本語;
 
 other : Wait your support to translate
 
