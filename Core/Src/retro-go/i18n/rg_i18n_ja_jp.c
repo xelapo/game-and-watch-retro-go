@@ -116,8 +116,8 @@ const lang_t lang_ja_jp LANG_DATA = {
     .s_Confiem_del_save = "Delete save file?",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "Game Genie Codes",
-    .s_Game_Genie_Codes_ON = "ON",
-    .s_Game_Genie_Codes_OFF = "OFF",
+    .s_Game_Genie_Codes_ON = "\x6",
+    .s_Game_Genie_Codes_OFF = "\x5",
 #endif        
 
     //=====================================================================
@@ -148,8 +148,8 @@ const lang_t lang_ja_jp LANG_DATA = {
     .s_Debug_Title = "Debug",
     .s_Idle_power_off = "Idle power off",
     .s_Splash_Option = "Splash animation",
-    .s_Splash_On = "ON",
-    .s_Splash_Off = "OFF",
+    .s_Splash_On = "\x6",
+    .s_Splash_Off = "\x5",
 
     .s_Time = "Time",
     .s_Date = "Date",

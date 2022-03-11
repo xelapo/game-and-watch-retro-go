@@ -118,8 +118,8 @@ const lang_t lang_ko_kr LANG_DATA = {
     .s_Confiem_del_save = "저장 데이터를 삭제하시겠습니까?",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "Game Genie Codes",
-    .s_Game_Genie_Codes_ON = "ON",
-    .s_Game_Genie_Codes_OFF = "OFF",
+    .s_Game_Genie_Codes_ON = "\x6",
+    .s_Game_Genie_Codes_OFF = "\x5",
 #endif        
 
     //=====================================================================
@@ -150,8 +150,8 @@ const lang_t lang_ko_kr LANG_DATA = {
     .s_Debug_Title = "디버그",
     .s_Idle_power_off = "모든 전원 종료",
     .s_Splash_Option = "Splash Animation",
-    .s_Splash_On = "ON",
-    .s_Splash_Off = "OFF",
+    .s_Splash_On = "\x6",
+    .s_Splash_Off = "\x5",
 
     .s_Time = "시간",
     .s_Date = "날싸",
