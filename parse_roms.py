@@ -900,7 +900,7 @@ class ROMParser:
         romdef.setdefault('pce', {})
         romdef.setdefault('gw', {})
 
-        save_size, rom_size, img_size = self.generate_system(
+        save_size, rom_size, img_size, current_id = self.generate_system(
             "Core/Src/retro-go/gb_roms.c",
             "Nintendo Gameboy",
             "gb_system",
