@@ -17,7 +17,9 @@ typedef enum
 typedef struct rom_system_t rom_system_t;
 
 typedef struct {
+#if GAME_GENIE == 1
     uint32_t id;
+#endif
     const char *name;
     const char *ext;
     // char folder[32];
@@ -35,10 +37,11 @@ typedef struct {
     //bool missing_cover;
     rom_region_t region;
     const rom_system_t *system;
-
+#if GAME_GENIE == 1
     const char** game_genie_codes; // Game Genie codes to choose from
     const char** game_genie_descs; // Game Genie code descriptions
     int game_genie_count;
+#endif
 } retro_emulator_file_t;
 
 typedef struct {

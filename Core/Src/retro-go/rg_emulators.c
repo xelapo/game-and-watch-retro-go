@@ -334,20 +334,13 @@ void emulator_show_file_info(retro_emulator_file_t *file)
 #if GAME_GENIE == 1
 static bool game_genie_update_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t event, uint32_t repeat)
 {
-    if (event == ODROID_DIALOG_PREV || event == ODROID_DIALOG_NEXT) {
-      if (option->value == ODROID_DIALOG_VALUE_OFF) {
-          bool result = odroid_settings_ActiveGameGenieCodes_set(CHOSEN_FILE->id, option->id, true);
-          if (result) {
-              option->value = ODROID_DIALOG_VALUE_ON;
-          } else {
-              option->value = ODROID_DIALOG_VALUE_OFF;
-          }
-      } else {
-          option->value = ODROID_DIALOG_VALUE_OFF;
-          odroid_settings_ActiveGameGenieCodes_set(CHOSEN_FILE->id, option->id, false);
-      }
+    bool is_on = odroid_settings_ActiveGameGenieCodes_is_enabled(CHOSEN_FILE->id, option->id);
+    if (event == ODROID_DIALOG_PREV || event == ODROID_DIALOG_NEXT) 
+    {
+        is_on = is_on ? false : true;
+        odroid_settings_ActiveGameGenieCodes_set(CHOSEN_FILE->id, option->id, is_on);
     }
-
+    strcpy(option->value, is_on ? curr_lang->s_Game_Genie_Codes_ON : curr_lang->s_Game_Genie_Codes_OFF);
     return event == ODROID_DIALOG_ENTER;
 }
 
@@ -357,26 +350,24 @@ static bool show_game_genie_dialog()
 
     // +1 for the terminator sentinel
     odroid_dialog_choice_t *choices = rg_alloc((CHOSEN_FILE->game_genie_count + 1) * sizeof(odroid_dialog_choice_t), MEM_ANY);
-    for(int i=0; i<CHOSEN_FILE->game_genie_count; i++) {
+    char svalues[16][10];
+    for(int i=0; i<CHOSEN_FILE->game_genie_count; i++) 
+    {
         const char *label = CHOSEN_FILE->game_genie_descs[i];
         if (label == NULL) {
             label = CHOSEN_FILE->game_genie_codes[i];
         }
-        bool is_on = odroid_settings_ActiveGameGenieCodes_is_enabled(CHOSEN_FILE->id, i);
         choices[i].id = i;
         choices[i].label = label;
-        choices[i].value = is_on ? ODROID_DIALOG_VALUE_ON : ODROID_DIALOG_VALUE_OFF;
+        choices[i].value = svalues[i];
         choices[i].enabled = 1;
         choices[i].update_cb = game_genie_update_cb;
     }
     choices[CHOSEN_FILE->game_genie_count] = last;
-
-    odroid_overlay_dialog("Game Genie Codes", choices, 0);
+    odroid_overlay_dialog(curr_lang->s_Game_Genie_Codes, choices, 0);
 
     rg_free(choices);
-
     odroid_settings_commit();
-
     return false;
 }
 #endif
@@ -396,7 +387,7 @@ bool emulator_show_file_menu(retro_emulator_file_t *file)
 
 #if GAME_GENIE == 1
     odroid_dialog_choice_t last = ODROID_DIALOG_CHOICE_LAST;
-    odroid_dialog_choice_t game_genie_row = {4, "Game Genie Codes", "", 1, NULL};
+    odroid_dialog_choice_t game_genie_row = {4, curr_lang->s_Game_Genie_Codes, "", 1, NULL};
     odroid_dialog_choice_t game_genie_choice = last; 
     if (strcmp(file->system->system_name, "Nintendo Entertainment System") == 0) {
         game_genie_choice = game_genie_row;

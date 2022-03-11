@@ -24,7 +24,9 @@ const uint32_t {name}_count = {rom_count};
 MAX_GAME_GENIE_CODES = 16
 
 ROM_ENTRY_TEMPLATE = """\t{{
+#if GAME_GENIE == 1
 \t\t.id = {rom_id},
+#endif
 \t\t.name = "{name}",
 \t\t.ext = "{extension}",
 \t\t.address = {rom_entry},
@@ -466,6 +468,7 @@ class ROMParser:
             gg_code_array_name = "%sCODE_%s" % (game_genie_codes_prefix, i)
             gg_desc_array_name = "%sDESC_%s" % (game_genie_codes_prefix, i)
             body += ROM_ENTRY_TEMPLATE.format(
+                rom_id=rom.rom_id,
                 name=str(rom.name),
                 size=rom.size,
                 rom_entry=rom.symbol,

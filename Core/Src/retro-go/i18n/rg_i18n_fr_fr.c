@@ -115,6 +115,12 @@ const lang_t lang_fr_fr LANG_DATA = {
     .s_Add_favorite = "Ajouter aux favoris",
     .s_Delete_save = "Supprimer la sauvegarde",
     .s_Confiem_del_save = "Supprimer la sauvegarde ?",
+#if GAME_GENIE == 1
+    .s_Game_Genie_Codes = "Game Genie Codes",
+    .s_Game_Genie_Codes_ON = "ON",
+    .s_Game_Genie_Codes_OFF = "OFF",
+#endif        
+
     //=====================================================================
 
     // Core\Src\retro-go\rg_main.c =========================================
