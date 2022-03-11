@@ -200,7 +200,7 @@ void odroid_settings_commit()
 void odroid_settings_reset()
 {
 #if GAME_GENIE == 1 
-    for (int i = 0, i <= ROM_COUNT, i++)
+    for (int i = 0; i <= ROM_COUNT; i++)
         persistent_config_ram.rom[rom_id].active_game_genie_codes = 0;
 #endif
     memcpy(&persistent_config_ram, &persistent_config_default, sizeof(persistent_config_t));
