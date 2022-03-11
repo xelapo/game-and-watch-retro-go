@@ -116,6 +116,12 @@ const lang_t lang_ko_kr LANG_DATA = {
     .s_Add_favorite = "즐겨찾기 추가",
     .s_Delete_save = "저장데이터 삭제",
     .s_Confiem_del_save = "저장 데이터를 삭제하시겠습니까?",
+#if GAME_GENIE == 1
+    .s_Game_Genie_Codes = "Game Genie Codes",
+    .s_Game_Genie_Codes_ON = "ON",
+    .s_Game_Genie_Codes_OFF = "OFF",
+#endif        
+
     //=====================================================================
 
     // Core\Src\retro-go\rg_main.c =========================================

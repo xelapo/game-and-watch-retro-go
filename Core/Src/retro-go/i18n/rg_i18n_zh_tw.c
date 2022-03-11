@@ -113,6 +113,12 @@ const lang_t lang_zh_tw LANG_DATA = {
     .s_Add_favorite = "★ 添加收藏",
     .s_Delete_save = "□ 刪除進度",
     .s_Confiem_del_save = "您確認要刪除目前的遊戲存檔？",
+#if GAME_GENIE == 1
+    .s_Game_Genie_Codes = "＆ 精靈代碼",
+    .s_Game_Genie_Codes_ON = "開啟",
+    .s_Game_Genie_Codes_OFF = "關閉",
+#endif        
+
     //=====================================================================
     // Core\Src\retro-go\rg_main.c =========================================
     .s_Second_Unit = "秒",

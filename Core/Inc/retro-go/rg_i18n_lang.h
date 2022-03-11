@@ -1,5 +1,7 @@
 #pragma once
-
+#if !defined (GAME_GENIE)
+#define GAME_GENIE 0
+#endif
 typedef struct
 {
     const uint32_t codepage;
@@ -81,6 +83,11 @@ typedef struct
     const char *s_Add_favorite;
     const char *s_Delete_save;
     const char *s_Confiem_del_save;
+#if GAME_GENIE == 1
+    const char *s_Game_Genie_Codes;
+    const char *s_Game_Genie_Codes_ON;
+    const char *s_Game_Genie_Codes_OFF;
+#endif    
     //=====================================================================
     // Core\Src\retro-go\rg_main.c =========================================
     const char *s_Second_Unit;

@@ -310,7 +310,7 @@ static int get_dialog_items_count(odroid_dialog_choice_t *options)
     if (options == NULL)
         return 0;
 
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 17; i++)
         if (options[i].id == last.id && options[i].enabled == last.enabled)
             return i;
     return 0;
