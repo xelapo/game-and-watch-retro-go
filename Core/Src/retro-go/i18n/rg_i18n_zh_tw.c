@@ -115,8 +115,8 @@ const lang_t lang_zh_tw LANG_DATA = {
     .s_Confiem_del_save = "您確認要刪除目前的遊戲存檔？",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "＆ 精靈代碼",
-    .s_Game_Genie_Codes_ON = "開啟",
-    .s_Game_Genie_Codes_OFF = "關閉",
+    .s_Game_Genie_Codes_ON = "\x6",
+    .s_Game_Genie_Codes_OFF = "\x5",
 #endif        
 
     //=====================================================================
@@ -146,8 +146,8 @@ const lang_t lang_zh_tw LANG_DATA = {
     .s_Debug_Title = "調試選項",
     .s_Idle_power_off = "省電待機",
     .s_Splash_Option = "啟動畫面",
-    .s_Splash_On = "開啟",
-    .s_Splash_Off = "關閉",
+    .s_Splash_On = "\x6",
+    .s_Splash_Off = "\x5",
 
     .s_Time = "時間：",
     .s_Date = "日期：",

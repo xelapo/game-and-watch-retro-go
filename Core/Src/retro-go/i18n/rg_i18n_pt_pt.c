@@ -109,8 +109,8 @@ const lang_t lang_pt_pt LANG_DATA = {
     .s_Confiem_del_save = "Apagar ficheiro save?",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "Game Genie Codes",
-    .s_Game_Genie_Codes_ON = "ON",
-    .s_Game_Genie_Codes_OFF = "OFF",
+    .s_Game_Genie_Codes_ON = "\x6",
+    .s_Game_Genie_Codes_OFF = "\x5",
 #endif        
 
     //=====================================================================
@@ -139,8 +139,8 @@ const lang_t lang_pt_pt LANG_DATA = {
     .s_Debug_Title = "Depuração",
     .s_Idle_power_off = "Desligamento inativo",
     .s_Splash_Option = "Animação inicial",
-    .s_Splash_On = "LIGADO",
-    .s_Splash_Off = "DESLIGADO",
+    .s_Splash_On = "\x6",
+    .s_Splash_Off = "\x5",
     .s_Time = "Horas",
     .s_Date = "Data",
     .s_Time_Title = "HORAS",

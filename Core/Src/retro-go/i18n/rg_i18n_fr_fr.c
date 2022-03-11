@@ -117,8 +117,8 @@ const lang_t lang_fr_fr LANG_DATA = {
     .s_Confiem_del_save = "Supprimer la sauvegarde ?",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "Game Genie Codes",
-    .s_Game_Genie_Codes_ON = "ON",
-    .s_Game_Genie_Codes_OFF = "OFF",
+    .s_Game_Genie_Codes_ON = "\x6",
+    .s_Game_Genie_Codes_OFF = "\x5",
 #endif        
 
     //=====================================================================
@@ -149,8 +149,8 @@ const lang_t lang_fr_fr LANG_DATA = {
     .s_Debug_Title = "Debug",
     .s_Idle_power_off = "Temps avant veille",
     .s_Splash_Option = "Animation Splash",
-    .s_Splash_On = "ON",
-    .s_Splash_Off = "OFF",
+    .s_Splash_On = "\x6",
+    .s_Splash_Off = "\x5",
 
     .s_Time = "Heure",
     .s_Date = "Date",

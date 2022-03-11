@@ -267,6 +267,34 @@ XXXXXXX_=0xFE
 XXXXXXXX=0xFF
 
 fontdata = [
+    #  #05 OFF
+    0x05, 0x18, 0x10, 0x00,
+    ________, ________,
+    ____XXXX, XXXX____,
+    __XX____, ____XX__,
+    _X___XX_, ______X_,
+    _X__X__X, ______X_,
+    X__X____, X______X,
+    X__X____, X______X,
+    _X__X__X, ______X_,
+    _X___XX_, ______X_,
+    __XX____, ____XX__,
+    ____XXXX, XXXX____,
+    ________, ________,    
+    #  #06 ON
+    0x06, 0x18, 0x10, 0x00,
+    ________, ________,
+    ____XXXX, XXXX____,
+    __XX____, ____XX__,
+    _X______, _XX___X_,
+    _X______, XXXX__X_,
+    X______X, XXXXX__X,
+    X______X, XXXXX__X,
+    _X______, XXXX__X_,
+    _X______, _XX___X_,
+    __XX____, ____XX__,
+    ____XXXX, XXXX____,
+    ________, ________,   
     #  #07 Full
     0x07, 0x18, 0x08, 0x00,
     XXXXXXXX, ________,
@@ -332,6 +360,8 @@ def writestring(file, ss):
 
 def Txt_Fromimg(font_name, priname, out_size:int, ckvale:int):
     print("Process:" + font_name)
+    if (priname == "__") :
+        priname = ""
     py_file = "fcdata.py"
     txt_file = "txts" + "/" + priname + str((Path(font_name)).stem + ".txt")
     out_file = "src" + "/" + priname + str((Path(font_name)).stem + ".h")

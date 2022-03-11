@@ -121,8 +121,8 @@ const lang_t lang_zh_cn LANG_DATA = {
     .s_Confiem_del_save = "您确认要删除已保存的游戏进度？",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "＆ 精灵代码",
-    .s_Game_Genie_Codes_ON = "开",
-    .s_Game_Genie_Codes_OFF = "关",
+    .s_Game_Genie_Codes_ON = "\x6",
+    .s_Game_Genie_Codes_OFF = "\x5",
 #endif        
 
     //=====================================================================
@@ -153,8 +153,8 @@ const lang_t lang_zh_cn LANG_DATA = {
     .s_Debug_Title = "调试选项",
     .s_Idle_power_off = "空闲待机",
     .s_Splash_Option = "启动动画",
-    .s_Splash_On = "开",
-    .s_Splash_Off = "关",
+    .s_Splash_On = "\x6",
+    .s_Splash_Off = "\x5",
 
     .s_Time = "时间：",
     .s_Date = "日期：",
