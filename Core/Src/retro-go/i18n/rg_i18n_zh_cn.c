@@ -7,6 +7,9 @@
 #if !defined (INCLUDED_ZH_CN)
 #define INCLUDED_ZH_CN 0
 #endif
+#if !defined (GAME_GENIE)
+#define GAME_GENIE 0
+#endif
 #if INCLUDED_ZH_CN==1
 
 // Stand ¼òÌåÖÐÎÄ

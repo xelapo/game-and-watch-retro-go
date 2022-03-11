@@ -1,5 +1,7 @@
 #pragma once
-
+#if !defined (GAME_GENIE)
+#define GAME_GENIE 0
+#endif
 typedef struct
 {
     const uint32_t codepage;

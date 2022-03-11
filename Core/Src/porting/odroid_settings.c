@@ -16,7 +16,9 @@
   #define COVERFLOW 0
 #endif /* COVERFLOW */
 // Global
-
+#if !defined (GAME_GENIE)
+#define GAME_GENIE 0
+#endif
 #if !defined (CODEPAGE)
 #define CODEPAGE 1252
 #endif
@@ -201,7 +203,9 @@ void odroid_settings_reset()
 {
 #if GAME_GENIE == 1 
     for (int i = 0; i <= ROM_COUNT; i++)
+    {
         persistent_config_ram.rom[i].active_game_genie_codes = 0;
+    };
 #endif
     memcpy(&persistent_config_ram, &persistent_config_default, sizeof(persistent_config_t));
 

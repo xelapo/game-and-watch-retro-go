@@ -7,6 +7,9 @@
 #if !defined(COVERFLOW)
 #define COVERFLOW 0
 #endif /* COVERFLOW */
+#if !defined (GAME_GENIE)
+#define GAME_GENIE 0
+#endif
 
 typedef enum
 {
