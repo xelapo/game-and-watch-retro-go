@@ -511,12 +511,17 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
     properties->video.fullscreen.width = 240;
     properties->sound.masterVolume = 100;
 
-    properties->sound.mixerChannel[MIXER_CHANNEL_PSG].pan = 0;
-    properties->sound.mixerChannel[MIXER_CHANNEL_SCC].pan = 0;
-    properties->sound.mixerChannel[MIXER_CHANNEL_MSXMUSIC].pan = 0;
+    // Default : enable SCC and disable MSX-MUSIC
+    // This will be changed dynamicly if the game use MSX-MUSIC
+    properties->sound.mixerChannel[MIXER_CHANNEL_SCC].enable = 1;
+    properties->sound.mixerChannel[MIXER_CHANNEL_MSXMUSIC].enable = 1;
     properties->sound.mixerChannel[MIXER_CHANNEL_PCM].enable = 0;
-    properties->sound.mixerChannel[MIXER_CHANNEL_PCM].pan = 0;
     properties->sound.mixerChannel[MIXER_CHANNEL_IO].enable = 0;
+
+    properties->sound.mixerChannel[MIXER_CHANNEL_PSG].pan = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_MSXMUSIC].pan = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_SCC].pan = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_PCM].pan = 0;
     properties->sound.mixerChannel[MIXER_CHANNEL_IO].pan = 0;
 
     mixer = mixerCreate();
@@ -646,6 +651,12 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
     HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, AUDIO_BUFFER_LENGTH_DMA_MSX);
 
     emulatorStartMachine(NULL, &msxMachine);
+    // Enable SCC and disable MSX-MUSIC as G&W is not powerfull enough to handle both at same time
+    // If a game wants to play MSX-MUSIC sound, the mapper will detect it and it will disable SCC
+    // and enbale MSX-MUSIC
+    mixerEnableChannelType(boardGetMixer(), MIXER_CHANNEL_SCC, 1);
+    mixerEnableChannelType(boardGetMixer(), MIXER_CHANNEL_MSXMUSIC, 0);
+
     while (1) {
         bool drawFrame = common_emu_frame_loop();
         wdog_refresh();
