@@ -674,21 +674,21 @@ class ROMParser:
         fdi_disks = find_fdi_disks()
         disks_raw = [r for r in roms_raw if not contains_rom_by_name(r, fdi_disks)]
         disks_raw = [r for r in disks_raw if r.ext == "dsk"]
-        if disks_raw:
-            pbar = tqdm(disks_raw) if tqdm else disks_raw
-            for r in pbar:
-                if tqdm:
-                    pbar.set_description(f"Converting: {system_name} / {r.name}")
-                self._convert_dsk(
-                    variable_name,
-                    r,
-                    compress)
+#        if disks_raw:
+#            pbar = tqdm(disks_raw) if tqdm else disks_raw
+#            for r in pbar:
+#                if tqdm:
+#                    pbar.set_description(f"Converting: {system_name} / {r.name}")
+#                self._convert_dsk(
+#                    variable_name,
+#                    r,
+#                    compress)
             # Re-generate the fdi disks list
-            fdi_disks = find_fdi_disks()
+#            fdi_disks = find_fdi_disks()
         #remove .dsk from list
-        roms_raw = [r for r in roms_raw if not r.ext == "dsk"]
+#        roms_raw = [r for r in roms_raw if not r.ext == "dsk"]
         #add .fdi to list
-        roms_raw.extend(fdi_disks)
+#        roms_raw.extend(fdi_disks)
 
         roms_compressed = find_compressed_roms()
 

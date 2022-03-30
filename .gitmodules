@@ -7,3 +7,6 @@
 [submodule "fMSX"]
 	path = fMSX
 	url = https://github.com/sylverb/fMSX.git
+[submodule "blueMSX-go"]
+	path = blueMSX-go
+	url = https://github.com/sylverb/blueMSX-go.git

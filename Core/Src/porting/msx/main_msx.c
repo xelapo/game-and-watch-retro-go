@@ -10,7 +10,6 @@
 #include "main.h"
 #include "appid.h"
 
-/* TO move elsewhere */
 #include "stm32h7xx_hal.h"
 
 #include "common.h"
@@ -18,22 +17,37 @@
 #include "gw_lcd.h"
 
 #include "MSX.h"
-#include "SoundMSX.h"
-#include "I8251.h"
+#include "Properties.h"
+#include "ArchFile.h"
+#include "VideoRender.h"
+#include "AudioMixer.h"
+#include "Casette.h"
+#include "PrinterIO.h"
+#include "UartIO.h"
+#include "MidiIO.h"
+#include "Machine.h"
+#include "Board.h"
+#include "Emulator.h"
+#include "FileHistory.h"
+#include "Actions.h"
+#include "Language.h"
+#include "LaunchFile.h"
+#include "ArchEvent.h"
+#include "ArchSound.h"
+#include "ArchNotifications.h"
+#include "JoystickPort.h"
+#include "InputEvent.h"
+#include "R800.h"
 
-#include "main_msx.h"
-#include "video_msx.h"
-#include "core_msx.h"
+static Properties* properties;
+extern BoardInfo boardInfo;
+static Mixer* mixer;
+static Video* video;
+static char msx_cartmapper[10];
 
-#define MSX_AUDIO_BUFFER_LENGTH (AUDIO_SAMPLE_RATE / 60)
-#define AUDIO_BUFFER_LENGTH_DMA_MSX (2 * MSX_AUDIO_BUFFER_LENGTH)
-static int16_t msxAudioBufferOffset;
-
-
-static unsigned char msx_joystick_state = 0;
 static odroid_gamepad_state_t previous_joystick_state;
-int msx_button_a_key_index = 5; /* KBD_SPACE index */
-int msx_button_b_key_index = 53; /* n key index */
+int msx_button_a_key_index = 5; /* EC_SPACE index */
+int msx_button_b_key_index = 51; /* n key index */
 
 /* strings for options */
 static char disk_name[128];
@@ -42,72 +56,109 @@ static char key_name[6];
 static char a_button_name[6];
 static char b_button_name[6];
 
+static unsigned image_buffer_base_width;
+static unsigned image_buffer_current_width;
+static unsigned image_buffer_height;
+static unsigned width = 272;
+static unsigned height = 240;
+static int double_width;
+
+#define FPS_NTSC  60
+#define FPS_PAL   50
+
+#define MSX_FREQ FPS_NTSC
+
+#define AUDIO_MSX_SAMPLE_RATE 44100
+#define MSX_AUDIO_BUFFER_LENGTH (AUDIO_MSX_SAMPLE_RATE / MSX_FREQ)
+#define AUDIO_BUFFER_LENGTH_DMA_MSX (2 * MSX_AUDIO_BUFFER_LENGTH)
+static int16_t msxAudioBufferOffset;
+
 static bool msx_system_LoadState(char *pathName)
 {
-    int size = LoadMsxStateFlash((unsigned char *)ACTIVE_FILE->save_address);
-    printf("LoadState %d",size);
     return true;
 }
 
 static bool msx_system_SaveState(char *pathName)
 {
-    int size = SaveMsxStateFlash((unsigned char *)ACTIVE_FILE->save_address, ACTIVE_FILE->save_size);
-    printf("SaveState %d",size);
     return true;
 }
 
-/** PlayAllSound() *******************************************/
-/** Render and play given number of microseconds of sound.  **/
-/*************************************************************/
-void PlayAllSound(int uSec)
+/* Core stubs */
+void frameBufferDataDestroy(FrameBufferData* frameData){}
+void frameBufferSetActive(FrameBufferData* frameData){}
+void frameBufferSetMixMode(FrameBufferMixMode mode, FrameBufferMixMode mask){}
+void frameBufferClearDeinterlace(){}
+void frameBufferSetInterlace(FrameBuffer* frameBuffer, int val){}
+void archTrap(UInt8 value){}
+void videoUpdateAll(Video* video, Properties* properties){}
+
+/* framebuffer */
+
+uint16_t* frameBufferGetLine(FrameBuffer* frameBuffer, int y)
 {
-      /* x2 to avoid skipping */
-      RenderAndPlayAudio(2*uSec*AUDIO_SAMPLE_RATE/1000000);
+   return (lcd_get_active_buffer() + sizeof(uint16_t) * (y * image_buffer_current_width + 24));
 }
 
-/* Returns the number of samples we can fill in the audio buffer */
-unsigned int GetFreeAudio(void) {
-  return MSX_AUDIO_BUFFER_LENGTH-msxAudioBufferOffset;
-}
-
-unsigned int WriteAudio(sample *Data,unsigned int Length) {
-    uint8_t volume = odroid_audio_volume_get();
-    int32_t factor = volume_tbl[volume];
-
-    for (int i = 0; i < Length; i++) {
-        int32_t sample = Data[i];
-        if (audio_mute || volume == ODROID_AUDIO_VOLUME_MIN) {
-                audiobuffer_emulator[msxAudioBufferOffset] = 0;
-        } else {
-                audiobuffer_emulator[msxAudioBufferOffset] = (sample * factor) >> 8;
-        }
-        msxAudioBufferOffset++;
-    }
-    return Length;
-}
-
-/** TrashAudio() *********************************************/
-/** Free resources allocated by InitAudio().                **/
-/*************************************************************/
-void TrashAudio(void)
+FrameBuffer* frameBufferGetDrawFrame(void)
 {
+   return (void*)lcd_get_active_buffer();
 }
 
-unsigned int InitAudio(unsigned int Rate,unsigned int Latency) {
-      // Init Sound
-      msxAudioBufferOffset = 0;
-      memset(audiobuffer_emulator, 0, sizeof(audiobuffer_emulator));
-      memset(audiobuffer_dma, 0, sizeof(audiobuffer_dma));
-      HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, AUDIO_BUFFER_LENGTH_DMA_MSX);
+FrameBuffer* frameBufferFlipDrawFrame(void)
+{
+   return (void*)lcd_get_active_buffer();
+}
 
-      printf("Sound initialized\n");
-      return Rate;
+static int fbScanLine = 0;
+
+void frameBufferSetScanline(int scanline)
+{
+   fbScanLine = scanline;
+}
+
+int frameBufferGetScanline(void)
+{
+   return fbScanLine;
+}
+
+FrameBufferData* frameBufferDataCreate(int maxWidth, int maxHeight, int defaultHorizZoom)
+{
+   return (void*)lcd_get_active_buffer();
+}
+
+FrameBufferData* frameBufferGetActive()
+{
+    return (void*)lcd_get_active_buffer();
+}
+
+void   frameBufferSetLineCount(FrameBuffer* frameBuffer, int val)
+{
+   image_buffer_height = val;
+}
+
+int    frameBufferGetLineCount(FrameBuffer* frameBuffer) {
+   return image_buffer_height;
+}
+
+int frameBufferGetMaxWidth(FrameBuffer* frameBuffer)
+{
+   return FB_MAX_LINE_WIDTH;
+}
+
+int frameBufferGetDoubleWidth(FrameBuffer* frameBuffer, int y)
+{
+   return double_width;
+}
+
+void frameBufferSetDoubleWidth(FrameBuffer* frameBuffer, int y, int val)
+{
 }
 
 static int selected_disk_index = 0;
-#define MSX_DISK_EXTENSION "fdi"
+#define MSX_DISK_EXTENSION "dsk"
 static bool update_disk_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t event, uint32_t repeat)
 {
+    char game_name[80];
     int disk_count = 0;
     int max_index = 0;
     retro_emulator_file_t *disk_file = NULL;
@@ -129,8 +180,10 @@ static bool update_disk_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t
     disk_file = (retro_emulator_file_t *)rom_get_ext_file_at_index(msx_system,MSX_DISK_EXTENSION,selected_disk_index);
     if (event == ODROID_DIALOG_ENTER) {
         if (disk_count > 0) {
-            msx_change_disk(0,NULL); // Eject current disk
-            msx_change_disk(0,disk_file->name);
+            sprintf(game_name,"%s.%s",disk_file->name,disk_file->ext);
+            emulatorSuspend();
+            insertDiskette(properties, 0, game_name, NULL, -1);
+            emulatorResume();
         }
     }
     strcpy(option->value, disk_file->name);
@@ -143,7 +196,6 @@ int selected_msx_index = 2;
 static bool update_msx_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t event, uint32_t repeat)
 {
   int max_index = 2;
-  int mode = Mode;
 
   if (event == ODROID_DIALOG_PREV) {
         selected_msx_index = selected_msx_index > 0 ? selected_msx_index - 1 : max_index;
@@ -167,16 +219,16 @@ static bool update_msx_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t 
   if (event == ODROID_DIALOG_ENTER) {
         switch (selected_msx_index) {
               case 0: // MSX1;
-                    mode = (mode & ~(MSX_MODEL)) | MSX_MSX1;
+//                    mode = (mode & ~(MSX_MODEL)) | MSX_MSX1;
                     break;
               case 1: // MSX2;
-                    mode = (mode & ~(MSX_MODEL)) | MSX_MSX2;
+//                    mode = (mode & ~(MSX_MODEL)) | MSX_MSX2;
                     break;
               case 2: // MSX2+;
-                    mode = (mode & ~(MSX_MODEL)) | MSX_MSX2P;
+//                    mode = (mode & ~(MSX_MODEL)) | MSX_MSX2P;
                     break;
         }
-        msx_start(mode,RAMPages,VRAMPages,NULL);
+//        msx_start(mode,RAMPages,VRAMPages,NULL);
   }
    return event == ODROID_DIALOG_ENTER;
 }
@@ -187,72 +239,70 @@ struct msx_key_info {
 };
 
 struct msx_key_info msx_keyboard[] = {
-    {KBD_F1,"F1"},
-    {KBD_F2,"F2"},
-    {KBD_F3,"F3"},
-    {KBD_F4,"F4"},
-    {KBD_F5,"F5"},
-    {KBD_SPACE,"Space"},
-    {KBD_SHIFT,"Shift"},
-    {KBD_CONTROL,"Control"},
-    {KBD_GRAPH,"Graph"},
-    {KBD_BS,"BS"},
-    {KBD_TAB,"Tab"},
-    {KBD_CAPSLOCK,"CapsLock"},
-    {KBD_SELECT,"Select"},
-    {KBD_HOME,"Home"},
-    {KBD_ENTER,"Enter"},
-    {KBD_DELETE,"Delete"},
-    {KBD_INSERT,"Insert"},
-    {KBD_COUNTRY,"Country"},
-    {KBD_STOP,"Stop"},
-    {KBD_ESCAPE,"Esc"},
-    {33,"1/!"},
-    {64,"2/@"},
-    {35,"3/#"},
-    {36,"4/$"},
-    {37,"5/%"},
-    {94,"6/^"},
-    {38,"7/&"},
-    {42,"8/*"},
-    {40,"9/("},
-    {41,"0/)"},
-    {KBD_NUMPAD0,"0"},
-    {KBD_NUMPAD1,"1"},
-    {KBD_NUMPAD2,"2"},
-    {KBD_NUMPAD3,"3"},
-    {KBD_NUMPAD4,"4"},
-    {KBD_NUMPAD5,"5"},
-    {KBD_NUMPAD6,"6"},
-    {KBD_NUMPAD7,"7"},
-    {KBD_NUMPAD8,"8"},
-    {KBD_NUMPAD9,"9"},
-    {97,"a"},
-    {98,"b"},
-    {99,"c"},
-    {100,"d"},
-    {101,"e"},
-    {102,"f"},
-    {103,"g"},
-    {104,"h"},
-    {105,"i"},
-    {106,"j"},
-    {107,"k"},
-    {108,"l"},
-    {109,"m"},
-    {110,"n"},
-    {111,"o"},
-    {112,"p"},
-    {113,"q"},
-    {114,"r"},
-    {115,"s"},
-    {116,"t"},
-    {117,"u"},
-    {118,"v"},
-    {119,"w"},
-    {120,"x"},
-    {121,"y"},
-    {122,"z"},
+    {EC_F1,"F1"},
+    {EC_F2,"F2"},
+    {EC_F3,"F3"},
+    {EC_F4,"F4"},
+    {EC_F5,"F5"},
+    {EC_SPACE,"Space"},
+    {EC_LSHIFT,"Shift"},
+    {EC_CTRL,"Control"},
+    {EC_GRAPH,"Graph"},
+    {EC_BKSPACE,"BS"},
+    {EC_TAB,"Tab"},
+    {EC_CAPS,"CapsLock"},
+    {EC_SELECT,"Select"},
+    {EC_RETURN,"Return"},
+    {EC_DEL,"Delete"},
+    {EC_INS,"Insert"},
+    {EC_STOP,"Stop"},
+    {EC_ESC,"Esc"},
+    {EC_1,"1/!"},
+    {EC_2,"2/@"},
+    {EC_3,"3/#"},
+    {EC_4,"4/$"},
+    {EC_5,"5/%%"},
+    {EC_6,"6/^"},
+    {EC_7,"7/&"},
+    {EC_8,"8/*"},
+    {EC_9,"9/("},
+    {EC_0,"0/)"},
+    {EC_NUM0,"0"},
+    {EC_NUM1,"1"},
+    {EC_NUM2,"2"},
+    {EC_NUM3,"3"},
+    {EC_NUM4,"4"},
+    {EC_NUM5,"5"},
+    {EC_NUM6,"6"},
+    {EC_NUM7,"7"},
+    {EC_NUM8,"8"},
+    {EC_NUM9,"9"},
+    {EC_A,"a"},
+    {EC_B,"b"},
+    {EC_C,"c"},
+    {EC_D,"d"},
+    {EC_E,"e"},
+    {EC_F,"f"},
+    {EC_G,"g"},
+    {EC_H,"h"},
+    {EC_I,"i"},
+    {EC_J,"j"},
+    {EC_K,"k"},
+    {EC_L,"l"},
+    {EC_M,"m"},
+    {EC_N,"n"},
+    {EC_O,"o"},
+    {EC_P,"p"},
+    {EC_Q,"q"},
+    {EC_R,"r"},
+    {EC_S,"s"},
+    {EC_T,"t"},
+    {EC_U,"u"},
+    {EC_V,"v"},
+    {EC_W,"w"},
+    {EC_X,"x"},
+    {EC_Y,"y"},
+    {EC_Z,"z"},
 };
 
 #define RELEASE_KEY_DELAY 5
@@ -309,75 +359,67 @@ static bool update_b_button_cb(odroid_dialog_choice_t *option, odroid_dialog_eve
     return event == ODROID_DIALOG_ENTER;
 }
 
-/** Joystick() ***********************************************/
-/** Query positions of two joystick connected to ports 0/1. **/
-/** Returns 0.0.B2.A2.R2.L2.D2.U2.0.0.B1.A1.R1.L1.D1.U1.    **/
-/*************************************************************/
-unsigned int Joystick(void)
+static void msxInputUpdate(odroid_gamepad_state_t *joystick)
 {
-    odroid_gamepad_state_t joystick;
-
-    odroid_input_read_gamepad(&joystick);
-
-    if ((joystick.values[ODROID_INPUT_LEFT]) && !previous_joystick_state.values[ODROID_INPUT_LEFT]) {
-        KBD_SET(KBD_LEFT);
-    } else if (!(joystick.values[ODROID_INPUT_LEFT]) && previous_joystick_state.values[ODROID_INPUT_LEFT]) {
-        KBD_RES(KBD_LEFT);
+    if ((joystick->values[ODROID_INPUT_LEFT]) && !previous_joystick_state.values[ODROID_INPUT_LEFT]) {
+        eventMap[EC_LEFT]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_LEFT]) && previous_joystick_state.values[ODROID_INPUT_LEFT]) {
+        eventMap[EC_LEFT]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_RIGHT]) && !previous_joystick_state.values[ODROID_INPUT_RIGHT]) {
-        KBD_SET(KBD_RIGHT);
-    } else if (!(joystick.values[ODROID_INPUT_RIGHT]) && previous_joystick_state.values[ODROID_INPUT_RIGHT]) {
-        KBD_RES(KBD_RIGHT);
+    if ((joystick->values[ODROID_INPUT_RIGHT]) && !previous_joystick_state.values[ODROID_INPUT_RIGHT]) {
+        eventMap[EC_RIGHT]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_RIGHT]) && previous_joystick_state.values[ODROID_INPUT_RIGHT]) {
+        eventMap[EC_RIGHT]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_UP]) && !previous_joystick_state.values[ODROID_INPUT_UP]) {
-        KBD_SET(KBD_UP);
-    } else if (!(joystick.values[ODROID_INPUT_UP]) && previous_joystick_state.values[ODROID_INPUT_UP]) {
-        KBD_RES(KBD_UP);
+    if ((joystick->values[ODROID_INPUT_UP]) && !previous_joystick_state.values[ODROID_INPUT_UP]) {
+        eventMap[EC_UP]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_UP]) && previous_joystick_state.values[ODROID_INPUT_UP]) {
+        eventMap[EC_UP]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_DOWN]) && !previous_joystick_state.values[ODROID_INPUT_DOWN]) {
-        KBD_SET(KBD_DOWN);
-    } else if (!(joystick.values[ODROID_INPUT_DOWN]) && previous_joystick_state.values[ODROID_INPUT_DOWN]) {
-        KBD_RES(KBD_DOWN);
+    if ((joystick->values[ODROID_INPUT_DOWN]) && !previous_joystick_state.values[ODROID_INPUT_DOWN]) {
+        eventMap[EC_DOWN]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_DOWN]) && previous_joystick_state.values[ODROID_INPUT_DOWN]) {
+        eventMap[EC_DOWN]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_A]) && !previous_joystick_state.values[ODROID_INPUT_A]) {
-        KBD_SET(msx_keyboard[msx_button_a_key_index].key_id);
-    } else if (!(joystick.values[ODROID_INPUT_A]) && previous_joystick_state.values[ODROID_INPUT_A]) {
-        KBD_RES(msx_keyboard[msx_button_a_key_index].key_id);
+    if ((joystick->values[ODROID_INPUT_A]) && !previous_joystick_state.values[ODROID_INPUT_A]) {
+        eventMap[msx_keyboard[msx_button_a_key_index].key_id]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_A]) && previous_joystick_state.values[ODROID_INPUT_A]) {
+        eventMap[msx_keyboard[msx_button_a_key_index].key_id]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_B]) && !previous_joystick_state.values[ODROID_INPUT_B]) {
-        KBD_SET(msx_keyboard[msx_button_b_key_index].key_id);
-    } else if (!(joystick.values[ODROID_INPUT_B]) && previous_joystick_state.values[ODROID_INPUT_B]) {
-        KBD_RES(msx_keyboard[msx_button_b_key_index].key_id);
+    if ((joystick->values[ODROID_INPUT_B]) && !previous_joystick_state.values[ODROID_INPUT_B]) {
+        eventMap[msx_keyboard[msx_button_b_key_index].key_id]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_B]) && previous_joystick_state.values[ODROID_INPUT_B]) {
+        eventMap[msx_keyboard[msx_button_b_key_index].key_id]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_START]) && !previous_joystick_state.values[ODROID_INPUT_START]) {
-        KBD_SET(KBD_F5);
-    } else if (!(joystick.values[ODROID_INPUT_START]) && previous_joystick_state.values[ODROID_INPUT_START]) {
-        KBD_RES(KBD_F5);
+    if ((joystick->values[ODROID_INPUT_START]) && !previous_joystick_state.values[ODROID_INPUT_START]) {
+        eventMap[EC_F5]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_START]) && previous_joystick_state.values[ODROID_INPUT_START]) {
+        eventMap[EC_F5]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_SELECT]) && !previous_joystick_state.values[ODROID_INPUT_SELECT]) {
-        KBD_SET(KBD_F4);
-    } else if (!(joystick.values[ODROID_INPUT_SELECT]) && previous_joystick_state.values[ODROID_INPUT_SELECT]) {
-        KBD_RES(KBD_F4);
+    if ((joystick->values[ODROID_INPUT_SELECT]) && !previous_joystick_state.values[ODROID_INPUT_SELECT]) {
+        eventMap[EC_F4]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_SELECT]) && previous_joystick_state.values[ODROID_INPUT_SELECT]) {
+        eventMap[EC_F4]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_X]) && !previous_joystick_state.values[ODROID_INPUT_X]) {
-        KBD_SET(KBD_F3);
-    } else if (!(joystick.values[ODROID_INPUT_X]) && previous_joystick_state.values[ODROID_INPUT_X]) {
-        KBD_RES(KBD_F3);
+    if ((joystick->values[ODROID_INPUT_X]) && !previous_joystick_state.values[ODROID_INPUT_X]) {
+        eventMap[EC_F3]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_X]) && previous_joystick_state.values[ODROID_INPUT_X]) {
+        eventMap[EC_F3]  = 0;
     }
-    if ((joystick.values[ODROID_INPUT_Y]) && !previous_joystick_state.values[ODROID_INPUT_Y]) {
-        KBD_SET(KBD_F2);
-    } else if (!(joystick.values[ODROID_INPUT_Y]) && previous_joystick_state.values[ODROID_INPUT_Y]) {
-        KBD_RES(KBD_F2);
+    if ((joystick->values[ODROID_INPUT_Y]) && !previous_joystick_state.values[ODROID_INPUT_Y]) {
+        eventMap[EC_F2]  = 1;
+    } else if (!(joystick->values[ODROID_INPUT_Y]) && previous_joystick_state.values[ODROID_INPUT_Y]) {
+        eventMap[EC_F2]  = 0;
     }
 
     // Handle keyboard emulation
     if (pressed_key) {
-        KBD_SET(pressed_key);
+        eventMap[pressed_key] = 1;
         release_key = pressed_key;
         pressed_key = 0;
     } else if (release_key) {
         if (release_key_delay == 0) {
-            KBD_RES(release_key);
+            eventMap[pressed_key] = 0;
             release_key = 0;
             release_key_delay = RELEASE_KEY_DELAY;
         } else {
@@ -385,9 +427,7 @@ unsigned int Joystick(void)
         }
     }
 
-    memcpy(&previous_joystick_state,&joystick,sizeof(odroid_gamepad_state_t));
-
-    return(msx_joystick_state);
+    memcpy(&previous_joystick_state,joystick,sizeof(odroid_gamepad_state_t));
 }
 
 static void createOptionMenu(odroid_dialog_choice_t *options) {
@@ -431,81 +471,253 @@ static void createOptionMenu(odroid_dialog_choice_t *options) {
     options[index].update_cb = NULL;
 }
 
-/** RefreshScreen() ******************************************/
-/** Refresh screen. This function is called in the end of   **/
-/** refresh cycle to show the entire screen.                **/
-/*************************************************************/
-void RefreshScreen(void) {
-    odroid_dialog_choice_t options[10];
-
-    bool drawFrame = common_emu_frame_loop();
-
-    wdog_refresh();
-
-    odroid_gamepad_state_t joystick;
-    odroid_input_read_gamepad(&joystick);
-
-    createOptionMenu(options);
-    common_emu_input_loop(&joystick, options);
-
-    if (drawFrame) {
-        size_t offset = (dma_state == DMA_TRANSFER_STATE_HF) ? 0 : MSX_AUDIO_BUFFER_LENGTH;
-        memcpy(&audiobuffer_dma[offset],audiobuffer_emulator,MSX_AUDIO_BUFFER_LENGTH*sizeof(sample));
-        msxAudioBufferOffset = 0;
-
-        common_ingame_overlay();
-        lcd_swap();
-    }
-    if(!common_emu_state.skip_frames) {
-        dma_transfer_state_t last_dma_state = DMA_TRANSFER_STATE_HF;
-        for(uint8_t p = 0; p < common_emu_state.pause_frames + 1; p++) {
-            while (dma_state == last_dma_state) {
-                cpumon_sleep();
-            }
-            last_dma_state = dma_state;
-        }
-    }
-}
-
-/* Main */
+static int underrun = 0;
+static int overrun = 0;
+static Machine msxMachine;
 void app_main_msx(uint8_t load_state, uint8_t start_paused)
 {
-    int SndSwitch;             /* Mask of enabled sound channels */
-    int SndVolume;             /* Master volume for audio        */
+    int i;
+    odroid_dialog_choice_t options[10];
+    char game_name[80];
+    bool load_fmpac = 0;
+    bool load_disk = 0;
+    bool load_scci = 1;
 
-    unsigned char *savestate_address = NULL;
+    createOptionMenu(options);
+
+    memset(&msxMachine,0,sizeof(Machine));
+
     if (start_paused) {
         common_emu_state.pause_after_frames = 2;
     } else {
         common_emu_state.pause_after_frames = 0;
     }
-    common_emu_state.frame_time_10us = (uint16_t)(100000 / 60/*FPS_NTSC*/ + 0.5f);
+    common_emu_state.frame_time_10us = (uint16_t)(100000 / FPS_NTSC + 0.5f);
 
-    odroid_system_init(APPID_MSX, AUDIO_SAMPLE_RATE);
+    odroid_system_init(APPID_MSX, AUDIO_MSX_SAMPLE_RATE);
     odroid_system_emu_init(&msx_system_LoadState, &msx_system_SaveState, NULL);
 
-    /* Setup color palettes */
-    msx_setup_palette();
+    image_buffer_base_width    =  320;
+    image_buffer_current_width =  image_buffer_base_width;
+    image_buffer_height        =  240;
 
-    /* Init controls */
-    memset(&previous_joystick_state,0, sizeof(odroid_gamepad_state_t));
-    SETJOYTYPE(0,JOY_STICK);
+    properties = propCreate(1, EMU_LANG_ENGLISH, P_KBD_EUROPEAN, P_EMU_SYNCNONE, "");
+    properties->sound.stereo = 0;
+    properties->emulation.speed = FPS_NTSC;
+    properties->emulation.vdpSyncMode = P_VDP_SYNC60HZ;
+    properties->emulation.enableFdcTiming = 0;
+    properties->emulation.noSpriteLimits = 0;
+    properties->video.fullscreen.width = 320;
+    properties->video.fullscreen.width = 240;
+    properties->sound.masterVolume = 100;
 
-    /* Init Sound */
-    InitSound(AUDIO_SAMPLE_RATE,1000/60);
-    SndSwitch=(1<<MAXCHANNELS)-1;
-    SndVolume=64;
-    SetChannels(SndVolume,SndSwitch);
+    properties->sound.mixerChannel[MIXER_CHANNEL_PSG].pan = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_SCC].pan = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_MSXMUSIC].pan = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_PCM].enable = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_PCM].pan = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_IO].enable = 0;
+    properties->sound.mixerChannel[MIXER_CHANNEL_IO].pan = 0;
 
-    /* If disk game, set correct disk index */
-    if(strcmp(ACTIVE_FILE->ext, MSX_DISK_EXTENSION) == 0) {
+    mixer = mixerCreate();
+
+    emulatorInit(properties, mixer);
+    actionInit(video, properties, mixer);
+
+    emulatorRestartSound();
+
+    for (i = 0; i < MIXER_CHANNEL_TYPE_COUNT; i++)
+    {
+        mixerSetChannelTypeVolume(mixer, i, properties->sound.mixerChannel[i].volume);
+        mixerSetChannelTypePan(mixer, i, properties->sound.mixerChannel[i].pan);
+        mixerEnableChannelType(mixer, i, properties->sound.mixerChannel[i].enable);
+    }
+
+    mixerSetMasterVolume(mixer, properties->sound.masterVolume);
+    mixerEnableMaster(mixer, properties->sound.masterEnable);
+
+    sprintf(game_name,"%s.%s",ACTIVE_FILE->name,ACTIVE_FILE->ext);
+    if (0 == strcmp(ACTIVE_FILE->ext,MSX_DISK_EXTENSION)) {
         const rom_system_t *msx_system = rom_manager_system(&rom_mgr, "MSX");
         selected_disk_index = rom_get_index_for_file_ext(msx_system,ACTIVE_FILE);
+
+        insertDiskette(properties, 0, game_name, NULL, -1);
+        // We load SCC-I cartridge for disk games requiring it
+        if (load_scci) {
+            insertCartridge(properties, 0, CARTNAME_SNATCHER, NULL, ROM_SNATCHER, -1);
+        } else {
+            load_fmpac = true;
+        }
+        load_disk = true;
+    } else {
+        insertCartridge(properties, 0, game_name, NULL, ROM_KONAMI5, -1);
     }
 
-    if (load_state) {
-        savestate_address = (unsigned char *)ACTIVE_FILE->save_address;
+    boardSetFdcTimingEnable(0/*properties->emulation.enableFdcTiming*/);
+    boardSetY8950Enable(0/*properties->sound.chip.enableY8950*/);
+    boardSetYm2413Enable(1/*properties->sound.chip.enableYM2413*/);
+    boardSetMoonsoundEnable(0/*properties->sound.chip.enableMoonsound*/);
+    boardSetVideoAutodetect(1/*properties->video.detectActiveMonitor*/);
+
+    msxMachine.board.type = BOARD_MSX_T9769B;
+    msxMachine.video.vdpVersion = VDP_V9958;
+    msxMachine.video.vramSize = 128 * 1024;
+    msxMachine.cmos.enable = 1;
+    msxMachine.cpu.freqZ80 = 3579545;
+    msxMachine.cpu.freqR800 = 7159090;
+    msxMachine.fdc.count = 1;
+    msxMachine.cmos.batteryBacked = 1;
+    msxMachine.audio.psgstereo = 0;
+    msxMachine.audio.psgpan[0] = 0;
+    msxMachine.audio.psgpan[1] = -1;
+    msxMachine.audio.psgpan[2] = 1;
+
+    msxMachine.cpu.hasR800 = 0;
+    msxMachine.fdc.enabled = 0;
+
+    msxMachine.slot[0].subslotted = 1;
+    msxMachine.slot[1].subslotted = 0;
+    msxMachine.slot[2].subslotted = 1;
+    msxMachine.slot[3].subslotted = 1;
+    msxMachine.cart[0].slot = 1;
+    msxMachine.cart[0].subslot = 0;
+    msxMachine.cart[1].slot = 2;
+    msxMachine.cart[1].subslot = 0;
+
+    i=0;
+
+    msxMachine.slotInfo[i].slot = 0;
+    msxMachine.slotInfo[i].subslot = 0;
+    msxMachine.slotInfo[i].startPage = 0;
+    msxMachine.slotInfo[i].pageCount = 0;
+    msxMachine.slotInfo[i].romType = ROM_F4INVERTED;
+    strcpy(msxMachine.slotInfo[i].name, "");
+    i++;
+
+    msxMachine.slotInfo[i].slot = 0;
+    msxMachine.slotInfo[i].subslot = 0;
+    msxMachine.slotInfo[i].startPage = 0;
+    msxMachine.slotInfo[i].pageCount = 4;
+    msxMachine.slotInfo[i].romType = ROM_CASPATCH;
+    strcpy(msxMachine.slotInfo[i].name, "MSX2P.rom");
+    i++;
+
+    msxMachine.slotInfo[i].slot = 3;
+    msxMachine.slotInfo[i].subslot = 1;
+    msxMachine.slotInfo[i].startPage = 0;
+    msxMachine.slotInfo[i].pageCount = 2;
+    msxMachine.slotInfo[i].romType = ROM_NORMAL;
+    strcpy(msxMachine.slotInfo[i].name, "MSX2PEXT.rom");
+    i++;
+
+    msxMachine.slotInfo[i].slot = 3;
+    msxMachine.slotInfo[i].subslot = 2;
+    msxMachine.slotInfo[i].startPage = 2;
+    msxMachine.slotInfo[i].pageCount = 4;
+    msxMachine.slotInfo[i].romType = ROM_TC8566AF;
+    strcpy(msxMachine.slotInfo[i].name, "PANASONICDISK.rom");
+    i++;
+
+    msxMachine.slotInfo[i].slot = 0;
+    msxMachine.slotInfo[i].subslot = 2;
+    msxMachine.slotInfo[i].startPage = 2;
+    msxMachine.slotInfo[i].pageCount = 2;
+    msxMachine.slotInfo[i].romType = ROM_MSXMUSIC; // FMPAC
+    strcpy(msxMachine.slotInfo[i].name, "MSX2PMUS.rom");
+    i++;
+
+    msxMachine.slotInfo[i].slot = 3;
+    msxMachine.slotInfo[i].subslot = 0;
+    msxMachine.slotInfo[i].startPage = 0;
+    msxMachine.slotInfo[i].pageCount = 16; // 128kB of RAM
+    msxMachine.slotInfo[i].romType = RAM_MAPPER;
+    strcpy(msxMachine.slotInfo[i].name, "");
+    i++;
+
+    msxMachine.slotInfoCount = i;
+
+    memset(lcd_get_active_buffer(), 0, sizeof(framebuffer1));
+    memset(lcd_get_inactive_buffer(), 0, sizeof(framebuffer1));
+
+    // Init Sound
+    msxAudioBufferOffset = 0;
+    memset(audiobuffer_emulator, 0, sizeof(audiobuffer_emulator));
+    memset(audiobuffer_dma, 0, sizeof(audiobuffer_dma));
+    HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, AUDIO_BUFFER_LENGTH_DMA_MSX);
+
+    emulatorStartMachine(NULL, &msxMachine);
+    while (1) {
+        bool drawFrame = common_emu_frame_loop();
+        wdog_refresh();
+        odroid_gamepad_state_t joystick;
+        odroid_input_read_gamepad(&joystick);
+        common_emu_input_loop(&joystick, options);
+        msxInputUpdate(&joystick);
+        ((R800*)boardInfo.cpuRef)->terminate = 0;
+        boardInfo.run(boardInfo.cpuRef);
+        if (drawFrame) {
+            size_t offset = (dma_state == DMA_TRANSFER_STATE_HF) ? 0 : MSX_AUDIO_BUFFER_LENGTH;
+            if (msxAudioBufferOffset >= MSX_AUDIO_BUFFER_LENGTH) {
+#ifdef DEBUG_AUDIO
+                printf("DMA copy offset %d\n",msxAudioBufferOffset);
+#endif
+                memcpy(&audiobuffer_dma[offset],audiobuffer_emulator,MSX_AUDIO_BUFFER_LENGTH*sizeof(Int16));
+                msxAudioBufferOffset = 0;
+//                msxAudioBufferOffset -= MSX_AUDIO_BUFFER_LENGTH;
+                // Move second buffer to first location
+//                memcpy(audiobuffer_emulator,&audiobuffer_emulator[MSX_AUDIO_BUFFER_LENGTH],MSX_AUDIO_BUFFER_LENGTH*sizeof(Int16));
+            } else {
+#ifdef DEBUG_AUDIO
+                printf("DMA underrun %d\n",underrun++);
+#endif
+            }
+
+            common_ingame_overlay();
+            lcd_swap();
+//            memset(lcd_get_active_buffer,0xFF,GW_LCD_WIDTH * GW_LCD_HEIGHT * sizeof(uint16_t));
+        }
+        if(!common_emu_state.skip_frames) {
+            dma_transfer_state_t last_dma_state = DMA_TRANSFER_STATE_HF;
+            for(uint8_t p = 0; p < common_emu_state.pause_frames + 1; p++) {
+                while (dma_state == last_dma_state) {
+                    cpumon_sleep();
+                }
+                last_dma_state = dma_state;
+            }
+        }
     }
-    msx_start(MSX_MSX2P|MSX_NTSC|MSX_MSXDOS2|MSX_GUESSA|MSX_GUESSB,
-              RAMPages,VRAMPages,savestate_address);
 }
+
+static Int32 soundWrite(void* dummy, Int16 *buffer, UInt32 count)
+{
+    uint8_t volume = odroid_audio_volume_get();
+    int32_t factor = volume_tbl[volume];
+    int32_t sample;
+#ifdef DEBUG_AUDIO
+    printf("soundWrite offset %d count %d\n",msxAudioBufferOffset,count);
+#endif
+    for (int i = 0; i < count; i++) {
+        sample = buffer[i];
+        if (msxAudioBufferOffset >= MSX_AUDIO_BUFFER_LENGTH)//MSX_AUDIO_BUFFER_LENGTH*2)
+        {
+#ifdef DEBUG_AUDIO
+            printf("DMA overrun %d (count %d i %d)\n",overrun++, count, i);
+#endif
+            break;
+        }
+        if (audio_mute || volume == ODROID_AUDIO_VOLUME_MIN) {
+                audiobuffer_emulator[msxAudioBufferOffset] = 0;
+        } else {
+                audiobuffer_emulator[msxAudioBufferOffset] = (sample * factor) >> 8;
+        }
+        msxAudioBufferOffset++;
+    }
+    return 0;
+}
+
+void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 channels) {
+    mixerSetStereo(mixer, 0);
+    mixerSetWriteCallback(mixer, soundWrite, NULL, MSX_AUDIO_BUFFER_LENGTH);
+}
+
+void archSoundDestroy(void) {}
