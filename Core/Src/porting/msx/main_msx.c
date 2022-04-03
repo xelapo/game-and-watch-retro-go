@@ -51,7 +51,7 @@ int msx_button_b_key_index = 51; /* n key index */
 /* strings for options */
 static char disk_name[128];
 static char msx_name[6];
-static char key_name[6];
+static char key_name[7];
 static char a_button_name[6];
 static char b_button_name[6];
 
@@ -344,79 +344,81 @@ static bool update_msx_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t 
 struct msx_key_info {
     int  key_id;
     const char *name;
+    bool auto_release;
 };
 
 struct msx_key_info msx_keyboard[] = {
-    {EC_F1,"F1"},
-    {EC_F2,"F2"},
-    {EC_F3,"F3"},
-    {EC_F4,"F4"},
-    {EC_F5,"F5"},
-    {EC_SPACE,"Space"},
-    {EC_LSHIFT,"Shift"},
-    {EC_CTRL,"Control"},
-    {EC_GRAPH,"Graph"},
-    {EC_BKSPACE,"BS"},
-    {EC_TAB,"Tab"},
-    {EC_CAPS,"CapsLock"},
-    {EC_SELECT,"Select"},
-    {EC_RETURN,"Return"},
-    {EC_DEL,"Delete"},
-    {EC_INS,"Insert"},
-    {EC_STOP,"Stop"},
-    {EC_ESC,"Esc"},
-    {EC_1,"1/!"},
-    {EC_2,"2/@"},
-    {EC_3,"3/#"},
-    {EC_4,"4/$"},
-    {EC_5,"5/%%"},
-    {EC_6,"6/^"},
-    {EC_7,"7/&"},
-    {EC_8,"8/*"},
-    {EC_9,"9/("},
-    {EC_0,"0/)"},
-    {EC_NUM0,"0"},
-    {EC_NUM1,"1"},
-    {EC_NUM2,"2"},
-    {EC_NUM3,"3"},
-    {EC_NUM4,"4"},
-    {EC_NUM5,"5"},
-    {EC_NUM6,"6"},
-    {EC_NUM7,"7"},
-    {EC_NUM8,"8"},
-    {EC_NUM9,"9"},
-    {EC_A,"a"},
-    {EC_B,"b"},
-    {EC_C,"c"},
-    {EC_D,"d"},
-    {EC_E,"e"},
-    {EC_F,"f"},
-    {EC_G,"g"},
-    {EC_H,"h"},
-    {EC_I,"i"},
-    {EC_J,"j"},
-    {EC_K,"k"},
-    {EC_L,"l"},
-    {EC_M,"m"},
-    {EC_N,"n"},
-    {EC_O,"o"},
-    {EC_P,"p"},
-    {EC_Q,"q"},
-    {EC_R,"r"},
-    {EC_S,"s"},
-    {EC_T,"t"},
-    {EC_U,"u"},
-    {EC_V,"v"},
-    {EC_W,"w"},
-    {EC_X,"x"},
-    {EC_Y,"y"},
-    {EC_Z,"z"},
+    {EC_F1,"F1",true},
+    {EC_F2,"F2",true},
+    {EC_F3,"F3",true},
+    {EC_F4,"F4",true},
+    {EC_F5,"F5",true},
+    {EC_SPACE,"Space",true},
+    {EC_LSHIFT,"Shift",false},
+    {EC_CTRL,"Control",false},
+    {EC_GRAPH,"Graph",true},
+    {EC_BKSPACE,"BS",true},
+    {EC_TAB,"Tab",true},
+    {EC_CAPS,"CapsLock",true},
+    {EC_SELECT,"Select",true},
+    {EC_RETURN,"Return",true},
+    {EC_DEL,"Delete",true},
+    {EC_INS,"Insert",true},
+    {EC_STOP,"Stop",true},
+    {EC_ESC,"Esc",true},
+    {EC_1,"1/!",true},
+    {EC_2,"2/@",true},
+    {EC_3,"3/#",true},
+    {EC_4,"4/$",true},
+    {EC_5,"5/\%",true},
+    {EC_6,"6/^",true},
+    {EC_7,"7/&",true},
+    {EC_8,"8/*",true},
+    {EC_9,"9/(",true},
+    {EC_0,"0/)",true},
+    {EC_NUM0,"0",true},
+    {EC_NUM1,"1",true},
+    {EC_NUM2,"2",true},
+    {EC_NUM3,"3",true},
+    {EC_NUM4,"4",true},
+    {EC_NUM5,"5",true},
+    {EC_NUM6,"6",true},
+    {EC_NUM7,"7",true},
+    {EC_NUM8,"8",true},
+    {EC_NUM9,"9",true},
+    {EC_A,"a",true},
+    {EC_B,"b",true},
+    {EC_C,"c",true},
+    {EC_D,"d",true},
+    {EC_E,"e",true},
+    {EC_F,"f",true},
+    {EC_G,"g",true},
+    {EC_H,"h",true},
+    {EC_I,"i",true},
+    {EC_J,"j",true},
+    {EC_K,"k",true},
+    {EC_L,"l",true},
+    {EC_M,"m",true},
+    {EC_N,"n",true},
+    {EC_O,"o",true},
+    {EC_P,"p",true},
+    {EC_Q,"q",true},
+    {EC_R,"r",true},
+    {EC_S,"s",true},
+    {EC_T,"t",true},
+    {EC_U,"u",true},
+    {EC_V,"v",true},
+    {EC_W,"w",true},
+    {EC_X,"x",true},
+    {EC_Y,"y",true},
+    {EC_Z,"z",true},
+    {EC_COLON,":",true},
 };
 
 #define RELEASE_KEY_DELAY 5
 static int selected_key_index = 0;
-static int pressed_key = 0;
-static int release_key = 0;
+static struct msx_key_info *pressed_key = NULL;
+static struct msx_key_info *release_key = NULL;
 static int release_key_delay = RELEASE_KEY_DELAY;
 static bool update_keyboard_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t event, uint32_t repeat)
 {
@@ -429,10 +431,16 @@ static bool update_keyboard_cb(odroid_dialog_choice_t *option, odroid_dialog_eve
         selected_key_index = selected_key_index < max_index ? selected_key_index + 1 : 0;
     }
 
-    strcpy(option->value, msx_keyboard[selected_key_index].name);
+    if (eventMap[msx_keyboard[selected_key_index].key_id]) {
+        // If key is pressed, add a * in front of key name
+        option->value[0] = '*';
+        strcpy(option->value+1, msx_keyboard[selected_key_index].name);
+    } else {
+        strcpy(option->value, msx_keyboard[selected_key_index].name);
+    }
 
     if (event == ODROID_DIALOG_ENTER) {
-        pressed_key = msx_keyboard[selected_key_index].key_id;
+        pressed_key = &msx_keyboard[selected_key_index];
     }
     return event == ODROID_DIALOG_ENTER;
 }
@@ -521,14 +529,16 @@ static void msxInputUpdate(odroid_gamepad_state_t *joystick)
     }
 
     // Handle keyboard emulation
-    if (pressed_key) {
-        eventMap[pressed_key] = 1;
-        release_key = pressed_key;
-        pressed_key = 0;
-    } else if (release_key) {
+    if (pressed_key != NULL) {
+        eventMap[pressed_key->key_id] = (eventMap[pressed_key->key_id] + 1) % 2;
+        if (pressed_key->auto_release) {
+            release_key = pressed_key;
+        }
+        pressed_key = NULL;
+    } else if (release_key != NULL) {
         if (release_key_delay == 0) {
-            eventMap[pressed_key] = 0;
-            release_key = 0;
+            eventMap[release_key->key_id] = 0;
+            release_key = NULL;
             release_key_delay = RELEASE_KEY_DELAY;
         } else {
             release_key_delay--;
