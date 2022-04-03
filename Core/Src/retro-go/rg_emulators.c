@@ -364,7 +364,7 @@ static bool show_game_genie_dialog()
         choices[i].update_cb = game_genie_update_cb;
     }
     choices[CHOSEN_FILE->game_genie_count] = last;
-    odroid_overlay_dialog(curr_lang->s_Game_Genie_Codes, choices, 0);
+    odroid_overlay_dialog(curr_lang->s_Game_Genie_Codes_Title, choices, 0);
 
     rg_free(choices);
     odroid_settings_commit();

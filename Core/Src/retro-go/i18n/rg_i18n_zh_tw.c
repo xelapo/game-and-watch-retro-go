@@ -115,6 +115,7 @@ const lang_t lang_zh_tw LANG_DATA = {
     .s_Confiem_del_save = "您確認要刪除目前的遊戲存檔？",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "＆ 精靈代碼",
+    .s_Game_Genie_Codes_Title = "金手指",
     .s_Game_Genie_Codes_ON = "\x6",
     .s_Game_Genie_Codes_OFF = "\x5",
 #endif        

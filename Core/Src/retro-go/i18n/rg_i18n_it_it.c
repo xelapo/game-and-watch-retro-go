@@ -118,6 +118,7 @@ const lang_t lang_it_it LANG_DATA = {
     .s_Confiem_del_save = "Eliminare il salvataggio?",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "Codici Game Genie",
+    .s_Game_Genie_Codes_Title = "Codici Genie Codes",
     .s_Game_Genie_Codes_ON = "\x6",
     .s_Game_Genie_Codes_OFF = "\x5",
 #endif        

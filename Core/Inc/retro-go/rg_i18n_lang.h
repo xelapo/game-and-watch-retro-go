@@ -85,6 +85,7 @@ typedef struct
     const char *s_Confiem_del_save;
 #if GAME_GENIE == 1
     const char *s_Game_Genie_Codes;
+    const char *s_Game_Genie_Codes_Title;
     const char *s_Game_Genie_Codes_ON;
     const char *s_Game_Genie_Codes_OFF;
 #endif    
