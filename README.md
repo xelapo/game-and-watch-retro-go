@@ -24,10 +24,11 @@ Expert `UICODEPAGE=lang` set the ui display language, default `UICODEPAGE=CODEPA
 - 12521 : Español (translation by [Icebox2](https://github.com/Icebox2))
 - 12522 : Portuguese (translation by [DefKorns](https://github.com/DefKorns))
 - 12523 : Français (translation by [Narkoa](https://github.com/Narkoa))
+- 12524 : Italiano (translation by [SantX27](https://github.com/SantX27))
 - 932 : 日本語(Wait for translate support)
 
 You can set `[OPT]=[0|1]` to include or exclude some language, List of `OPT` parameter:
-`EN_US`  English; `ES_ES`  Español; `PT_PT` Portuguese; `FR_FR` Français; `ZH_CN` 简体中文;`ZH_TW` 繁體中文;`KO_KR` 한국어;`JA_JP` 日本語;
+`EN_US`  English; `ES_ES`  Español; `PT_PT` Portuguese; `FR_FR` Français;`IT_IT` Italiano; `ZH_CN` 简体中文;`ZH_TW` 繁體中文;`KO_KR` 한국어;`JA_JP` 日本語;
 
 other : Wait your support to translate
 
@@ -81,6 +82,7 @@ Supported emulators:
   - [Backing up and restoring save state files](#backing-up-and-restoring-save-state-files)
   - [Screenshots](#screenshots)
   - [Game Genie](#game-genie)
+    - [Game Genie on PCE System](#game-genie-on-pce-system)
   - [Upgrading the flash](#upgrading-the-flash)
   - [Advanced Flash Examples](#advanced-flash-examples)
     - [Custom Firmware (CFW)](#custom-firmware-cfw)
@@ -250,6 +252,33 @@ GOZSXX, Invincibility
 When you re-flash, you can enable / disable each of your codes in the game selection screen.
 
 A collection of codes can be found here: [https://github.com/martaaay/game-and-watch-retro-go-game-genie-codes](https://github.com/martaaay/game-and-watch-retro-go-game-genie-codes).
+
+### Game Genie on PCE System
+
+Now you can define rom patch for PCE Roms. You can found patch info from [Here](https://krikzz.com/forum/index.php?topic=1004.0).
+To add PCE rom patcher, create a file ending in .pceplus in the same directory as your rom with the same name as your rom. For instance, for 
+"roms/pce/1943 Kai (J).pce" make a file called "roms/pce/1943 Kai (J).pceplus".
+A collection of codes file can be found [here](https://github.com/olderzeus/game-genie-codes-nes/tree/master/pceplus).
+
+Each line of pceplus is defined as: 
+```
+01822fbd,018330bd,0188fcbd,	Hacked Version
+[patchcommand],[...], patch desc 
+
+```
+
+Each patch command is a hex string defined as: 
+```
+01822fbd 
+_
+|how much byte to patched
+ _____
+   |patch start address, subtract pce rom header size if had.
+      __...
+       |bytes data to patched from start address
+
+```
+
 
 ## Upgrading the flash
 

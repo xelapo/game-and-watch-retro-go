@@ -120,7 +120,8 @@ const lang_t lang_zh_cn LANG_DATA = {
     .s_Delete_save = "□ 删除进度",
     .s_Confiem_del_save = "您确认要删除已保存的游戏进度？",
 #if GAME_GENIE == 1
-    .s_Game_Genie_Codes = "＆ 魔幻开关",
+    .s_Game_Genie_Codes = "＆ 金手指码",
+    .s_Game_Genie_Codes_Title = "金手指",
     .s_Game_Genie_Codes_ON = "\x6",
     .s_Game_Genie_Codes_OFF = "\x5",
 #endif        

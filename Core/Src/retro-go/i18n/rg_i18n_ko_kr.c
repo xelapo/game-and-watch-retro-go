@@ -118,6 +118,7 @@ const lang_t lang_ko_kr LANG_DATA = {
     .s_Confiem_del_save = "저장 데이터를 삭제하시겠습니까?",
 #if GAME_GENIE == 1
     .s_Game_Genie_Codes = "Game Genie Codes",
+    .s_Game_Genie_Codes_Title = "GG Options",
     .s_Game_Genie_Codes_ON = "\x6",
     .s_Game_Genie_Codes_OFF = "\x5",
 #endif        

@@ -21,7 +21,7 @@ const uint32_t {name}_count = {rom_count};
 """
 
 # Note: this value is not easily changed as it's assumed in some memory optimizations
-MAX_GAME_GENIE_CODES = 16
+MAX_GAME_GENIE_CODES = 32
 
 ROM_ENTRY_TEMPLATE = """\t{{
 #if GAME_GENIE == 1
@@ -322,14 +322,14 @@ class ROM:
         else:
             self.filename = filepath.stem
         romdefs.setdefault(self.filename, {})
-        romdef = romdefs[self.filename]
-        romdef.setdefault('name', self.filename)
-        romdef.setdefault('publish', '1')
-        romdef.setdefault('enable_save', '0')
-        self.publish = (romdef['publish'] == '1')
-        self.enable_save = (romdef['enable_save'] == '1') or args.save
-        self.name = romdef['name']
-        print("Found rom " + self.filename +" will display name as: " + romdef['name'])
+        self.romdef = romdefs[self.filename]
+        self.romdef.setdefault('name', self.filename)
+        self.romdef.setdefault('publish', '1')
+        self.romdef.setdefault('enable_save', '0')
+        self.publish = (self.romdef['publish'] == '1')
+        self.enable_save = (self.romdef['enable_save'] == '1') or args.save
+        self.name = self.romdef['name']
+        print("Found rom " + self.filename +" will display name as: " + self.romdef['name'])
         if not (self.publish):
             print("& will not Publish !")
         obj_name = "".join([i if i.isalnum() else "_" for i in self.path.name])
@@ -360,12 +360,60 @@ class ROM:
     def read(self):
         return self.path.read_bytes()
 
+    def get_rom_patchs(self):
+        #get pce rompatchs files
+        pceplus = Path(self.path.parent, self.filename + ".pceplus")
+
+        if not os.path.exists(pceplus):
+            return []
+
+        codes_and_descs = []
+        for line in pceplus.read_text().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("#"):
+                continue
+            parts = line.split(',')
+            cmd_count = 0
+            cmd_str = ""
+            for i in range(len(parts) - 1):
+                part = parts[i].strip()
+                #get cmd byte count
+                x_str = part[0:2]
+                x = (int(x_str, 16) >> 4) + 1
+                one_cmd = ""
+                for y in range(3):
+                    one_cmd = one_cmd + "\\x" + part[y * 2: y * 2 + 2] 
+                for y in range(x):
+                    one_cmd = one_cmd + "\\x" + part[y * 2 + 6: y * 2 + 8]
+                #got one cmd
+                cmd_count += 1
+                cmd_str = cmd_str + one_cmd
+            cmd_str = "\\x%x" % (cmd_count) + cmd_str
+            desc = parts[len(parts) - 1]
+            if desc is not None:
+                desc = desc[:40]
+                desc = desc.replace('\\', r'\\\\')
+                desc = desc.replace('"', r'\"')
+                desc = desc.strip()
+
+            codes_and_descs.append((cmd_str, desc))
+
+        if len(codes_and_descs) > MAX_GAME_GENIE_CODES:
+            print(
+                f"INFO: {self.name} has more than {MAX_GAME_GENIE_CODES} Game Genie codes. Truncating..."
+            )
+            codes_and_descs = codes_and_descs[:MAX_GAME_GENIE_CODES]
+
+        return codes_and_descs
+
     def get_game_genie_codes(self):
         # Get game genie code file path
         gg_path = Path(self.path.parent, self.filename + ".ggcodes")
 
         if not os.path.exists(gg_path):
-            return []
+            return self.get_rom_patchs()
 
         codes_and_descs = []
         for line in gg_path.read_text().splitlines():
@@ -391,7 +439,7 @@ class ROM:
 
             # Shorten description
             if desc is not None:
-                desc = desc[:25]
+                desc = desc[:40]
                 desc = desc.replace('\\', r'\\\\')
                 desc = desc.replace('"', r'\"')
                 desc = desc.strip()
@@ -1010,7 +1058,7 @@ class ROMParser:
             ["pce"],
             "SAVE_PCE_",
             romdef["pce"],
-            None,
+            "GG_PCE_",
             current_id,
             args.compress,
         )
