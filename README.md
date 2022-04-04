@@ -3,6 +3,15 @@
 # NewUI howto
 Please run `make help` to see more information.
 
+最新 Game Genie 以及基于 Game Genie 基础之上的 PCE Rom Patcher 已经可以支持中文化。从 [https://github.com/olderzeus/game-genie-codes-nes/tree/zh_cn](https://github.com/olderzeus/game-genie-codes-nes/tree/zh_cn) 可以查阅或自定义相关文件。
+
+:exclamation::exclamation::exclamation: 任何时候都 **不要** 连接 stlink 的 VCC 和 Game & Watch 主板的 VDD 脚 :exclamation::exclamation::exclamation:
+
+一般情况下只需要连接 GND，SWDIO，SWCLK 3个针脚即可。
+
+来自[apple524](https://github.com/apple524)的 ubuntu 刷机攻略：
+[Game & Watch 刷机完全教程](https://apple524.github.io/2022/04/03/g-w-hack/)
+
 來自[maxxkao](http://maxxkao.blogspot.com/)的刷機攻略：
 
 [Nintendo Game & Watch 刷機完全攻略](https://maxxkao.blogspot.com/2022/01/game-watch.html)
