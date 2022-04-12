@@ -38,6 +38,7 @@
 #include "JoystickPort.h"
 #include "InputEvent.h"
 #include "R800.h"
+#include "save_msx.h"
 
 static Int32 soundWrite(void* dummy, Int16 *buffer, UInt32 count);
 
@@ -93,11 +94,14 @@ static void setPropertiesMsx(Machine *machine, int msxType);
 
 static bool msx_system_LoadState(char *pathName)
 {
+    loadMsxState(ACTIVE_FILE->save_address);
     return true;
 }
 
 static bool msx_system_SaveState(char *pathName)
 {
+    int size = 0;
+    size = saveMsxState(ACTIVE_FILE->save_address,ACTIVE_FILE->save_size);
     return true;
 }
 
@@ -911,6 +915,10 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
     // and enbale MSX-MUSIC
     mixerEnableChannelType(boardGetMixer(), MIXER_CHANNEL_SCC, 1);
     mixerEnableChannelType(boardGetMixer(), MIXER_CHANNEL_MSXMUSIC, 0);
+
+    if (load_state) {
+        loadMsxState(ACTIVE_FILE->save_address);
+    }
 
     while (1) {
         wdog_refresh();

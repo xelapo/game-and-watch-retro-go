@@ -185,6 +185,7 @@ $(CORE_MSX)/Src/VideoChips/VDP_MSX.c \
 $(CORE_MSX)/Src/VideoChips/V9938.c \
 $(CORE_MSX)/Src/VideoChips/VideoManager.c \
 $(CORE_MSX)/Src/Z80/R800.c \
+$(CORE_MSX)/Src/Z80/R800SaveState.c \
 $(CORE_MSX)/Src/IoDevice/Casette.c \
 $(CORE_MSX)/Src/IoDevice/Disk.c \
 $(CORE_MSX)/Src/IoDevice/I8255.c \
@@ -208,7 +209,8 @@ $(CORE_MSX)/Src/Board/Board.c \
 $(CORE_MSX)/Src/Board/Machine.c \
 $(CORE_MSX)/Src/Board/MSX.c \
 $(CORE_MSX)/Src/Input/InputEvent.c \
-Core/Src/porting/msx/main_msx.c
+Core/Src/porting/msx/main_msx.c \
+Core/Src/porting/msx/save_msx.c
 
 GW_C_SOURCES = \
 LCD-Game-Emulator/src/cpus/sm500op.c \
