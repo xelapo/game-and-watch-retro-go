@@ -177,94 +177,99 @@ void frameBufferSetDoubleWidth(FrameBuffer* frameBuffer, int y, int val)
 /** GuessROM() ***********************************************/
 /** Guess MegaROM mapper of a ROM.                          **/
 /*************************************************************/
-#define MAP_GEN8 0
-#define MAP_ASCII8 1
-#define MAP_ASCII16 2
-#define MAP_KONAMI4 3
-#define MAP_KONAMI5 4
 int GuessROM(const uint8_t *buf,int size)
 {
-    int data;
-    int i,ROMCount[5];
+    int i;
+    int counters[6] = { 0, 0, 0, 0, 0, 0 };
+
     int mapper;
 
     /* No result yet */
     mapper = ROM_UNKNOWN;
 
-    /* Clear all counters */
-    for(i=0;i<5;++i) ROMCount[i]=1;
-    /* Generic 8kB mapper is default */
-    ROMCount[MAP_GEN8]+=1;
-    /* ASCII 16kB preferred over ASCII 8kB */
-    ROMCount[MAP_ASCII8]-=1;
+    if (size <= 0x10000) {
+        if (size == 0x10000) {
+            if (buf[0x4000] == 'A' && buf[0x4001] == 'B') mapper = ROM_PLAIN;
+            else mapper = ROM_ASCII16;
+            return mapper;
+        } 
+        
+        if (size <= 0x4000 && buf[0] == 'A' && buf[1] == 'B') {
+            UInt16 text = buf[8] + 256 * buf[9];
+            if ((text & 0xc000) == 0x8000) {
+                return ROM_BASIC;
+            }
+        }
+        return ROM_PLAIN;
+    }
 
     /* Count occurences of characteristic addresses */
-    for(i=0;i<size-2;++i)
-    {
-        data=buf[i]+((int)buf[i+1]<<8)+((int)buf[i+2]<<16);
-        switch(data)
-        {
-            case 0x500032:
-                ROMCount[MAP_KONAMI5]++;
+    for (i = 0; i < size - 3; i++) {
+        if (buf[i] == 0x32) {
+            UInt32 value = buf[i + 1] + ((UInt32)buf[i + 2] << 8);
+
+            switch(value) {
+            case 0x4000: 
+            case 0x8000: 
+            case 0xa000: 
+                counters[3]++;
                 break;
-            case 0x900032:
-                ROMCount[MAP_KONAMI5]++;
+
+            case 0x5000: 
+            case 0x9000: 
+            case 0xb000: 
+                counters[2]++;
                 break;
-            case 0xB00032:
-                ROMCount[MAP_KONAMI5]++;
+
+            case 0x6000: 
+                counters[3]++;
+                counters[4]++;
+                counters[5]++;
                 break;
-            case 0x400032:
-                ROMCount[MAP_KONAMI4]++;
+
+            case 0x6800: 
+            case 0x7800: 
+                counters[4]++;
                 break;
-            case 0x800032:
-                ROMCount[MAP_KONAMI4]++;
+
+            case 0x7000: 
+                counters[2]++;
+                counters[4]++;
+                counters[5]++;
                 break;
-            case 0xA00032:
-                ROMCount[MAP_KONAMI4]++;
+
+            case 0x77ff: 
+                counters[5]++;
                 break;
-            case 0x680032:
-                ROMCount[MAP_ASCII8]++;
-                break;
-            case 0x780032:
-                ROMCount[MAP_ASCII8]++;
-                break;
-            case 0x600032:
-                ROMCount[MAP_KONAMI4]++;
-                ROMCount[MAP_ASCII8]++;
-                ROMCount[MAP_ASCII16]++;
-                break;
-            case 0x700032:
-                ROMCount[MAP_KONAMI5]++;
-                ROMCount[MAP_ASCII8]++;
-                ROMCount[MAP_ASCII16]++;
-                break;
-            case 0x77FF32:
-                ROMCount[MAP_ASCII16]++;
-                break;
+            }
         }
     }
 
     /* Find which mapper type got more hits */
-    for(mapper=0,i=0;i<5;++i)
-        if(ROMCount[i]>ROMCount[mapper]) mapper=i;
+    mapper = 0;
+
+    counters[4] -= counters[4] ? 1 : 0;
+
+    for (i = 0; i <= 5; i++) {
+        if (counters[i] > 0 && counters[i] >= counters[mapper]) {
+            mapper = i;
+        }
+    }
+
+    if (mapper == 5 && counters[0] == counters[5]) {
+        mapper = 0;
+    }
 
     switch (mapper) {
-        case MAP_GEN8:
-            mapper = ROM_STANDARD;
-            break;
-        case MAP_ASCII8:
-            mapper = ROM_ASCII8;
-            break;
-        case MAP_ASCII16:
-            mapper = ROM_ASCII16;
-            break;
-        case MAP_KONAMI4:
-            mapper = ROM_KONAMI4;
-            break;
-        case MAP_KONAMI5:
-            mapper = ROM_KONAMI5;
-            break;
+        default:
+        case 0: mapper = ROM_STANDARD; break;
+        case 1: mapper = ROM_MSXDOS2; break;
+        case 2: mapper = ROM_KONAMI5; break;
+        case 3: mapper = ROM_KONAMI4; break;
+        case 4: mapper = ROM_ASCII8; break;
+        case 5: mapper = ROM_ASCII16; break;
     }
+
     /* Return the most likely mapper type */
     return(mapper);
 }
@@ -326,6 +331,7 @@ static bool update_frequency_cb(odroid_dialog_choice_t *option, odroid_dialog_ev
     }
 
     if (event == ODROID_DIALOG_ENTER) {
+        int frequency;
         switch (selected_frequency_index) {
             case 0: // Force 60Hz;
                 msx_fps = 60;
@@ -335,6 +341,8 @@ static bool update_frequency_cb(odroid_dialog_choice_t *option, odroid_dialog_ev
                 HAL_SAI_DMAStop(&hsai_BlockA1);
                 HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, (2 * AUDIO_MSX_SAMPLE_RATE / msx_fps));
                 vdpSetSyncMode(VDP_SYNC_60HZ);
+                emulatorSetFrequency(msx_fps , &frequency);
+                boardSetFrequency(frequency);
                 break;
             case 1: // Force 50Hz;
                 msx_fps = 50;
@@ -344,6 +352,8 @@ static bool update_frequency_cb(odroid_dialog_choice_t *option, odroid_dialog_ev
                 HAL_SAI_DMAStop(&hsai_BlockA1);
                 HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, (2 * AUDIO_MSX_SAMPLE_RATE / msx_fps));
                 vdpSetSyncMode(VDP_SYNC_50HZ);
+                emulatorSetFrequency(msx_fps , &frequency);
+                boardSetFrequency(frequency);
                 break;
         }
     }
@@ -809,6 +819,7 @@ static void setPropertiesMsx(Machine *machine, int msxType) {
 
 void app_main_msx(uint8_t load_state, uint8_t start_paused)
 {
+    int frequency;
     int i;
     odroid_dialog_choice_t options[10];
     bool drawFrame;
@@ -916,7 +927,8 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
     if (load_state) {
         loadMsxState((UInt8 *)ACTIVE_FILE->save_address);
     }
-
+    emulatorSetFrequency(msx_fps , &frequency);
+    boardSetFrequency(frequency);
     while (1) {
         wdog_refresh();
         drawFrame = common_emu_frame_loop();
