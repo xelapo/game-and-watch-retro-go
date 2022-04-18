@@ -329,13 +329,11 @@ static bool update_disk_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t
     }
 
     disk_file = (retro_emulator_file_t *)rom_get_ext_file_at_index(msx_system,MSX_DISK_EXTENSION,selected_disk_index);
-    if (event == ODROID_DIALOG_ENTER) {
-        if (disk_count > 0) {
-            sprintf(game_name,"%s.%s",disk_file->name,disk_file->ext);
-            emulatorSuspend();
-            insertDiskette(properties, 0, game_name, NULL, -1);
-            emulatorResume();
-        }
+    if (disk_count > 0) {
+        sprintf(game_name,"%s.%s",disk_file->name,disk_file->ext);
+        emulatorSuspend();
+        insertDiskette(properties, 0, game_name, NULL, -1);
+        emulatorResume();
     }
     strcpy(option->value, disk_file->name);
     return event == ODROID_DIALOG_ENTER;
