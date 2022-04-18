@@ -122,16 +122,17 @@ void save_gnw_msx_data() {
 
 void load_gnw_msx_data() {
     SaveState* state;
-    initLoadMsxState((UInt8 *)ACTIVE_FILE->save_address);
-    state = saveStateOpenForRead("main_msx");
-    selected_msx_index = saveStateGet(state, "selected_msx_index", 0);
-    selected_disk_index = saveStateGet(state, "selected_disk_index", 0);
-    msx_button_a_key_index = saveStateGet(state, "msx_button_a_key_index", 0);
-    msx_button_b_key_index = saveStateGet(state, "msx_button_b_key_index", 0);
-    selected_frequency_index = saveStateGet(state, "selected_frequency_index", 0);
-    selected_key_index = saveStateGet(state, "selected_key_index", 0);
-    msx_fps = saveStateGet(state, "msx_fps", 0);
-    saveStateClose(state);
+    if (initLoadMsxState((UInt8 *)ACTIVE_FILE->save_address)) {
+        state = saveStateOpenForRead("main_msx");
+        selected_msx_index = saveStateGet(state, "selected_msx_index", 0);
+        selected_disk_index = saveStateGet(state, "selected_disk_index", 0);
+        msx_button_a_key_index = saveStateGet(state, "msx_button_a_key_index", 0);
+        msx_button_b_key_index = saveStateGet(state, "msx_button_b_key_index", 0);
+        selected_frequency_index = saveStateGet(state, "selected_frequency_index", 0);
+        selected_key_index = saveStateGet(state, "selected_key_index", 0);
+        msx_fps = saveStateGet(state, "msx_fps", 0);
+        saveStateClose(state);
+    }
 }
 
 /* Core stubs */

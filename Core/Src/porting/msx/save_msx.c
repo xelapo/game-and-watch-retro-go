@@ -7,6 +7,7 @@
 #include "gw_linker.h"
 #include "gw_flash.h"
 #include "gw_lcd.h"
+#include "main_msx.h"
 #include "save_msx.h"
 #include <stdlib.h>
 #include <string.h>
@@ -155,14 +156,16 @@ void saveStateClose(SaveState* state)
 }
 
 /* Loadstate functions */
-void initLoadMsxState(UInt8 *srcBuffer) {
+bool initLoadMsxState(UInt8 *srcBuffer) {
     msxSaveState.offset = 0;
     // Check for header
     if (memcmp(headerString,srcBuffer,8) == 0) {
         msxSaveState.buffer = srcBuffer;
         // Copy sections header in structure
         memcpy(msxSaveState.sections,msxSaveState.buffer+8,sizeof(msxSaveState.sections[0])*MAX_SECTIONS);
+        return true;
     }
+    return false;
 }
 
 UInt32 loadMsxState(UInt8 *srcBuffer) {
@@ -173,6 +176,7 @@ UInt32 loadMsxState(UInt8 *srcBuffer) {
         // Copy sections header in structure
         memcpy(msxSaveState.sections,msxSaveState.buffer+8,sizeof(msxSaveState.sections[0])*MAX_SECTIONS);
         boardInfo.loadState();
+        load_gnw_msx_data();
     }
     return msxSaveState.offset;
 }
