@@ -184,6 +184,7 @@ $(CORE_MSX)/Src/Memory/romMapperStandard.c \
 $(CORE_MSX)/Src/Memory/romMapperSCCplus.c \
 $(CORE_MSX)/Src/Memory/romMapperTC8566AF.c \
 $(CORE_MSX)/Src/Memory/SlotManager.c \
+$(CORE_MSX)/Src/VideoChips/VDP_YJK.c \
 $(CORE_MSX)/Src/VideoChips/VDP_MSX.c \
 $(CORE_MSX)/Src/VideoChips/V9938.c \
 $(CORE_MSX)/Src/VideoChips/VideoManager.c \
@@ -278,3 +279,7 @@ $(BUILD_DIR)/$(TARGET)_extflash.bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
 $(BUILD_DIR)/$(TARGET)_intflash.bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
 	$(V)$(ECHO) [ BIN ] $(notdir $@)
 	$(V)$(BIN) -j .isr_vector -j .text -j .rodata -j .ARM.extab -j .preinit_array -j .init_array -j .fini_array -j .data $< $(BUILD_DIR)/$(TARGET)_intflash.bin
+
+$(BUILD_DIR)/$(TARGET)_intflash2.bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
+	$(V)$(ECHO) [ BIN ] $(notdir $@)
+	$(V)$(BIN) -j .flash2 $< $(BUILD_DIR)/$(TARGET)_intflash2.bin

@@ -71,6 +71,7 @@ __RAM_CORE_LENGTH__ = 68K;
 __RAM_EMU_LENGTH__  = 1024K - __RAM_UC_LENGTH__ - __RAM_CORE_LENGTH__;
 __AHBRAM_LENGTH__   = 128K;
 __FLASH_LENGTH__    = DEFINED(__FLASH_LENGTH__) ? __FLASH_LENGTH__ : 128k;
+__FLASH2_LENGTH__   = 256K; /* bank2 */
 
 __EXTFLASH_TOTAL_LENGTH__ = DEFINED(__EXTFLASH_TOTAL_LENGTH__) ? __EXTFLASH_TOTAL_LENGTH__ : 1024K;
 __EXTFLASH_OFFSET__ = DEFINED(__EXTFLASH_OFFSET__) ? __EXTFLASH_OFFSET__ : 0;
@@ -143,6 +144,7 @@ MEMORY
 
   /* FLASH */
   FLASH    (xr ) : ORIGIN = __INTFLASH__,          LENGTH =  __FLASH_LENGTH__
+  FLASH2   (xr ) : ORIGIN = 0x08100000,          LENGTH = __FLASH2_LENGTH__
   EXTFLASH (xr ) : ORIGIN = __EXTFLASH_START__,  LENGTH = __EXTFLASH_LENGTH__
   SAVEFLASH(xr ) : ORIGIN = __SAVEFLASH_START__, LENGTH = __SAVEFLASH_LENGTH__
   CONFIGFLASH(xr ) : ORIGIN = __CONFIGFLASH_START__, LENGTH = __CONFIGFLASH_LENGTH__
@@ -518,6 +520,15 @@ SECTIONS
     . = ALIGN(4);
     __flash_end__ = .;
   }
+
+  /* put *fast access* MSX read only stuff on the second bank */
+  .flash2 :
+  {
+    __flash2_start__ = .;
+    . = ALIGN(4);
+    *(.flash2)
+    __flash2_end__ = .;
+  } >FLASH2
 
   /* Uninitialized data section */
   . = ALIGN(4);
