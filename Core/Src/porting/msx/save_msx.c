@@ -101,11 +101,13 @@ UInt32 saveMsxState(UInt8 *destBuffer, UInt32 save_size) {
     // Erase flash memory
     store_erase((const UInt8 *)destBuffer, save_size);
 
+    isLastFlashWrite = 0;
     // Reserve a page of 256 Bytes for the header info
     // We put 0xff to be able to update values at the end of process
+    SaveFlashSaveData(msxSaveState.buffer,(UInt8 *)headerString,8);
     memset(msxSaveState.sections,0xff,sizeof(msxSaveState.sections[0])*MAX_SECTIONS);
-    SaveFlashSaveData(msxSaveState.buffer,(UInt8 *)msxSaveState.sections,sizeof(msxSaveState.sections[0])*MAX_SECTIONS);
-    msxSaveState.offset += sizeof(msxSaveState.sections[0])*MAX_SECTIONS;
+    SaveFlashSaveData(msxSaveState.buffer+8,(UInt8 *)msxSaveState.sections,sizeof(msxSaveState.sections[0])*MAX_SECTIONS);
+    msxSaveState.offset += 8+sizeof(msxSaveState.sections[0])*MAX_SECTIONS;
     // Start saving data
     boardSaveState("mem0",0);
     save_gnw_msx_data();
