@@ -46,7 +46,11 @@ static Mixer* mixer;
 
 static odroid_gamepad_state_t previous_joystick_state;
 int msx_button_a_key_index = 5; /* EC_SPACE index */
-int msx_button_b_key_index = 52; /* n key index */
+int msx_button_b_key_index = 7; /* EC_CTRL index */
+int msx_button_game_key = EC_RETURN;
+int msx_button_time_key = EC_CTRL;
+int msx_button_start_key = EC_RETURN;
+int msx_button_select_key = EC_CTRL;
 
 static int selected_disk_index = 0;
 #define MSX_DISK_EXTENSION "cdk"
@@ -588,25 +592,29 @@ static void msxInputUpdate(odroid_gamepad_state_t *joystick)
     } else if (!(joystick->values[ODROID_INPUT_B]) && previous_joystick_state.values[ODROID_INPUT_B]) {
         eventMap[msx_keyboard[msx_button_b_key_index].key_id]  = 0;
     }
+    // Game button on G&W
     if ((joystick->values[ODROID_INPUT_START]) && !previous_joystick_state.values[ODROID_INPUT_START]) {
-        eventMap[EC_F5]  = 1;
+        eventMap[msx_button_game_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_START]) && previous_joystick_state.values[ODROID_INPUT_START]) {
-        eventMap[EC_F5]  = 0;
+        eventMap[msx_button_game_key]  = 0;
     }
+    // Time button on G&W
     if ((joystick->values[ODROID_INPUT_SELECT]) && !previous_joystick_state.values[ODROID_INPUT_SELECT]) {
-        eventMap[EC_F4]  = 1;
+        eventMap[msx_button_time_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_SELECT]) && previous_joystick_state.values[ODROID_INPUT_SELECT]) {
-        eventMap[EC_F4]  = 0;
+        eventMap[msx_button_time_key]  = 0;
     }
+    // Start button on Zelda G&W
     if ((joystick->values[ODROID_INPUT_X]) && !previous_joystick_state.values[ODROID_INPUT_X]) {
-        eventMap[EC_F3]  = 1;
+        eventMap[msx_button_start_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_X]) && previous_joystick_state.values[ODROID_INPUT_X]) {
-        eventMap[EC_F3]  = 0;
+        eventMap[msx_button_start_key]  = 0;
     }
+    // Select button on Zelda G&W
     if ((joystick->values[ODROID_INPUT_Y]) && !previous_joystick_state.values[ODROID_INPUT_Y]) {
-        eventMap[EC_F2]  = 1;
+        eventMap[msx_button_select_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_Y]) && previous_joystick_state.values[ODROID_INPUT_Y]) {
-        eventMap[EC_F2]  = 0;
+        eventMap[msx_button_select_key]  = 0;
     }
 
     // Handle keyboard emulation
@@ -933,13 +941,36 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
         }
         // We load SCC-I cartridge for disk games requiring it
         insertCartridge(properties, 0, CARTNAME_SNATCHER, NULL, ROM_SNATCHER, -1);
+        // If game name contains konami, we setup a Konami key mapping
+        if (strcasestr(ACTIVE_FILE->name,"konami")) {
+            msx_button_a_key_index = 5; /* EC_SPACE index */
+            msx_button_b_key_index = 52; /* n key index */
+            msx_button_game_key = EC_F4;
+            msx_button_time_key = EC_F3;
+            msx_button_start_key = EC_F1;
+            msx_button_select_key = EC_F2;
+        }
     } else {
         printf("Rom Mapper %d\n",ACTIVE_FILE->mapper);
-        if (ACTIVE_FILE->mapper != ROM_UNKNOWN) {
-            insertCartridge(properties, 0, game_name, NULL, ACTIVE_FILE->mapper, -1);
-        } else {
-            insertCartridge(properties, 0, game_name, NULL, GuessROM(ACTIVE_FILE->address,ACTIVE_FILE->size), -1);
+        uint16_t mapper = ACTIVE_FILE->mapper;
+        if (mapper == ROM_UNKNOWN) {
+            mapper = GuessROM(ACTIVE_FILE->address,ACTIVE_FILE->size);
         }
+        // If game is using konami mapper, we setup a Konami key mapping
+        switch (mapper)
+        {
+            case ROM_KONAMI5:
+            case ROM_KONAMI4:
+            case ROM_KONAMI4NF:
+                msx_button_a_key_index = 5; /* EC_SPACE index */
+                msx_button_b_key_index = 52; /* n key index */
+                msx_button_game_key = EC_F4;
+                msx_button_time_key = EC_F3;
+                msx_button_start_key = EC_F1;
+                msx_button_select_key = EC_F2;
+                break;
+        }
+        insertCartridge(properties, 0, game_name, NULL, mapper, -1);
     }
 
     boardSetFdcTimingEnable(properties->emulation.enableFdcTiming);
