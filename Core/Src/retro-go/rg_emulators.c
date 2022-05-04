@@ -588,7 +588,7 @@ void emulators_init()
 #endif
 
 #ifdef ENABLE_EMULATOR_MSX
-    add_emulator("MSX", "msx", "msx", "fMSX", 0, &pad_msx, &header_msx);
+    add_emulator("MSX", "msx", "msx", "blueMSX", 0, &pad_msx, &header_msx);
 #endif
 
 #ifdef ENABLE_EMULATOR_WSV
