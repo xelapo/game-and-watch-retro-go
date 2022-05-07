@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import os
 import shutil
 import struct
@@ -270,6 +271,59 @@ def compress_lzma(data, level=None):
     compressed_data = compressed_data[13:]
 
     return compressed_data
+
+def sha1_for_file(filename):
+    sha1 = hashlib.sha1()
+    if os.path.exists(filename):
+        with open(filename, 'rb') as f:
+            while True:
+                data = f.read(16*1024)
+                if not data:
+                    break
+                sha1.update(data)
+
+        return sha1.hexdigest()
+    else:
+        return ""
+
+
+def parse_msx_bios_files():
+    #check that required MSX bios files are present
+    if (sha1_for_file("roms/msx_bios/MSX2P.rom") != "e90f80a61d94c617850c415e12ad70ac41e66bb7"):
+        print("Bad or missing roms/msx_bios/MSX2P.rom, check roms/msx_bios/README.md for info")
+        return 0
+
+    if (sha1_for_file("roms/msx_bios/MSX2PEXT.rom") != "fe0254cbfc11405b79e7c86c7769bd6322b04995"):
+        print("Bad or missing roms/msx_bios/MSX2PEXT.rom, check roms/msx_bios/README.md for info")
+        return 0
+
+    if (sha1_for_file("roms/msx_bios/MSX2PMUS.rom") != "6354ccc5c100b1c558c9395fa8c00784d2e9b0a3"):
+        print("Bad or missing roms/msx_bios/MSX2PMUS.rom, check roms/msx_bios/README.md for info")
+        return 0
+
+    if (sha1_for_file("roms/msx_bios/MSX2.rom") != "6103b39f1e38d1aa2d84b1c3219c44f1abb5436e"):
+        print("Bad or missing roms/msx_bios/MSX2.rom, check roms/msx_bios/README.md for info")
+        return 0
+
+    if (sha1_for_file("roms/msx_bios/MSX2EXT.rom") != "5c1f9c7fb655e43d38e5dd1fcc6b942b2ff68b02"):
+        print("Bad or missing roms/msx_bios/MSX2EXT.rom, check roms/msx_bios/README.md for info")
+        return 0
+
+    if (sha1_for_file("roms/msx_bios/MSX.rom") != "e998f0c441f4f1800ef44e42cd1659150206cf79"):
+        print("Bad or missing roms/msx_bios/MSX.rom, check roms/msx_bios/README.md for info")
+        return 0
+
+    if (sha1_for_file("roms/msx_bios/PANASONICDISK.rom") != "b9bce28fb74223ea902f82ebd107279624cf2aba"):
+        if (sha1_for_file("roms/msx_bios/PANASONICDISK.rom") == "7ed7c55e0359737ac5e68d38cb6903f9e5d7c2b6"):
+            print("Patching roms/msx_bios/PANASONICDISK.rom to disable 2nd FDD controller (= more free RAM)")
+            with open("roms/msx_bios/PANASONICDISK.rom", 'rb+') as f:
+                f.seek(0x17ec)
+                f.write(b'\x00')
+        else:
+            print("Bad or missing roms/msx_bios/PANASONICDISK.rom, check roms/msx_bios/README.md for info")
+            return 0
+
+    return 1
 
 
 def write_covart(srcfile, fn, w, h, jpg_quality):
@@ -1178,26 +1232,25 @@ class ROMParser:
         total_img_size += img_size
         build_config += "#define ENABLE_EMULATOR_MSX\n" if rom_size > 0 else ""
 
-        #bios (only parse if there are some MSX games)
+        #MSX bios (only parse if there are some MSX games)
         if rom_size > 0:
-            save_size, rom_size, img_size, current_id = self.generate_system(
-                "Core/Src/retro-go/msx_bios.c",
-                "MSX_BIOS",
-                "msx_bios",
-                "msx_bios",
-                ["rom"],
-                "SAVE_MSXB_",
-                romdef["msx_bios"],
-                None,
-                current_id
-            )
-            total_save_size += save_size
-            total_rom_size += rom_size
-            total_img_size += img_size
-            if rom_size == 0:
-                print(
-                    "You need to add MSX bios files in roms/msx_bios folder\nDo a make clean after adding bios files"
+            #Check that required bios files are here and patch files if needed
+            if parse_msx_bios_files():
+                save_size, rom_size, img_size, current_id = self.generate_system(
+                    "Core/Src/retro-go/msx_bios.c",
+                    "MSX_BIOS",
+                    "msx_bios",
+                    "msx_bios",
+                    ["rom"],
+                    "SAVE_MSXB_",
+                    romdef["msx_bios"],
+                    None,
+                    current_id
                 )
+                total_save_size += save_size
+                total_rom_size += rom_size
+                total_img_size += img_size
+            else:
                 exit(-1)
         else:
             save_size, rom_size, img_size, current_id = self.generate_system(
