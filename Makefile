@@ -156,8 +156,6 @@ CORE_MSX = blueMSX-go
 LIBRETRO_COMM_DIR  = $(CORE_MSX)/libretro-common
 
 MSX_C_SOURCES = \
-$(CORE_MSX)/Src/Libretro/Event.c \
-$(CORE_MSX)/Src/Libretro/Notifications.c \
 $(CORE_MSX)/Src/Libretro/Timer.c \
 $(CORE_MSX)/Src/Libretro/Emulator.c \
 $(CORE_MSX)/Src/Bios/Patch.c \
@@ -192,13 +190,11 @@ $(CORE_MSX)/Src/VideoChips/V9938.c \
 $(CORE_MSX)/Src/VideoChips/VideoManager.c \
 $(CORE_MSX)/Src/Z80/R800.c \
 $(CORE_MSX)/Src/Z80/R800SaveState.c \
-$(CORE_MSX)/Src/IoDevice/Casette.c \
 $(CORE_MSX)/Src/IoDevice/Disk.c \
 $(CORE_MSX)/Src/IoDevice/I8255.c \
 $(CORE_MSX)/Src/IoDevice/MsxPPI.c \
 $(CORE_MSX)/Src/IoDevice/RTC.c \
 $(CORE_MSX)/Src/IoDevice/TC8566AF.c \
-$(CORE_MSX)/Src/IoDevice/WD2793.c \
 $(CORE_MSX)/Src/SoundChips/AudioMixer.c \
 $(CORE_MSX)/Src/SoundChips/AY8910.c \
 $(CORE_MSX)/Src/SoundChips/SCC.c \

@@ -45,10 +45,17 @@ extern BoardInfo boardInfo;
 static Properties* properties;
 static Machine *msxMachine;
 static Mixer* mixer;
+
+enum{
+   FREQUENCY_VDP_AUTO = 0,
+   FREQUENCY_VDP_50HZ,
+   FREQUENCY_VDP_60HZ
+};
+
 // Default is MSX2+
 static int selected_msx_index = 2;
-// Default is 50Hz
-static int selected_frequency_index = 1;
+// Default is Automatic
+static int selected_frequency_index = FREQUENCY_VDP_AUTO;
 
 static odroid_gamepad_state_t previous_joystick_state;
 int msx_button_a_key_index = 5; /* EC_SPACE index */
@@ -98,6 +105,7 @@ static int8_t msx_fps = FPS_PAL;
 
 #define AUDIO_MSX_SAMPLE_RATE 16000
 
+static Int32 soundWrite(void* dummy, Int16 *buffer, UInt32 count);
 static void createMsxMachine(int msxType);
 static void setPropertiesMsx(Machine *machine, int msxType);
 static void setupEmulatorRessources(int msxType);
@@ -191,12 +199,12 @@ FrameBufferData* frameBufferGetActive()
     return (void*)lcd_get_active_buffer();
 }
 
-void   frameBufferSetLineCount(FrameBuffer* frameBuffer, int val)
+void frameBufferSetLineCount(FrameBuffer* frameBuffer, int val)
 {
     image_buffer_height = val;
 }
 
-int    frameBufferGetLineCount(FrameBuffer* frameBuffer) {
+int frameBufferGetLineCount(FrameBuffer* frameBuffer) {
     return image_buffer_height;
 }
 
@@ -349,7 +357,7 @@ static bool update_disk_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t
 
 static bool update_frequency_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t event, uint32_t repeat)
 {
-    int max_index = 1;
+    int max_index = 2;
 
     if (event == ODROID_DIALOG_PREV) {
         selected_frequency_index = selected_frequency_index > 0 ? selected_frequency_index - 1 : max_index;
@@ -359,36 +367,40 @@ static bool update_frequency_cb(odroid_dialog_choice_t *option, odroid_dialog_ev
     }
 
     switch (selected_frequency_index) {
-        case 0: // Force 60Hz;
-            strcpy(option->value, "60Hz");
+        case FREQUENCY_VDP_AUTO:
+            strcpy(option->value, "Auto");
             break;
-        case 1: // Force 50Hz;
+        case FREQUENCY_VDP_50HZ: // Force 50Hz
             strcpy(option->value, "50Hz");
+            break;
+        case FREQUENCY_VDP_60HZ: // Force 60Hz
+            strcpy(option->value, "60Hz");
             break;
     }
 
     if (event == ODROID_DIALOG_ENTER) {
-        int frequency;
         switch (selected_frequency_index) {
-            case 0: // Force 60Hz;
-                msx_fps = 60;
-                common_emu_state.frame_time_10us = (uint16_t)(100000 / FPS_NTSC + 0.5f);
-                memset(audiobuffer_dma, 0, sizeof(audiobuffer_dma));
-                HAL_SAI_DMAStop(&hsai_BlockA1);
-                HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, (2 * AUDIO_MSX_SAMPLE_RATE / msx_fps));
-                vdpSetSyncMode(VDP_SYNC_60HZ);
-                emulatorSetFrequency(msx_fps , &frequency);
-                boardSetFrequency(frequency);
+            case FREQUENCY_VDP_AUTO:
+                // Frequency update will be done at next loop if needed
+                vdpSetSyncMode(VDP_SYNC_AUTO);
                 break;
-            case 1: // Force 50Hz;
+            case FREQUENCY_VDP_50HZ: // Force 50Hz;
                 msx_fps = 50;
                 common_emu_state.frame_time_10us = (uint16_t)(100000 / FPS_PAL + 0.5f);
                 memset(audiobuffer_dma, 0, sizeof(audiobuffer_dma));
                 HAL_SAI_DMAStop(&hsai_BlockA1);
                 HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, (2 * AUDIO_MSX_SAMPLE_RATE / msx_fps));
+                emulatorRestartSound();
                 vdpSetSyncMode(VDP_SYNC_50HZ);
-                emulatorSetFrequency(msx_fps , &frequency);
-                boardSetFrequency(frequency);
+                break;
+            case FREQUENCY_VDP_60HZ: // Force 60Hz;
+                msx_fps = 60;
+                common_emu_state.frame_time_10us = (uint16_t)(100000 / FPS_NTSC + 0.5f);
+                memset(audiobuffer_dma, 0, sizeof(audiobuffer_dma));
+                HAL_SAI_DMAStop(&hsai_BlockA1);
+                HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, (2 * AUDIO_MSX_SAMPLE_RATE / msx_fps));
+                emulatorRestartSound();
+                vdpSetSyncMode(VDP_SYNC_60HZ);
                 break;
         }
     }
@@ -419,16 +431,11 @@ static bool update_msx_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t 
     }
 
     if (event == ODROID_DIALOG_ENTER) {
-        int frequency;
         boardInfo.destroy();
         boardDestroy();
         ahb_init();
         itc_init();
-        printf("Changing system %d\n",selected_msx_index);
         setupEmulatorRessources(selected_msx_index);
-        printf("emulatorSetFrequency\n");
-        emulatorSetFrequency(msx_fps, &frequency);
-        boardSetFrequency(frequency);
     }
     return event == ODROID_DIALOG_ENTER;
 }
@@ -942,7 +949,9 @@ static void insertGame() {
 static void createProperties() {
     properties = propCreate(1, EMU_LANG_ENGLISH, P_KBD_EUROPEAN, P_EMU_SYNCNONE, "");
     properties->sound.stereo = 0;
-    if (msx_fps == FPS_NTSC) {
+    if (selected_frequency_index == FREQUENCY_VDP_AUTO) {
+        properties->emulation.vdpSyncMode = P_VDP_SYNCAUTO;
+    } else if (selected_frequency_index == FREQUENCY_VDP_60HZ) {
         properties->emulation.vdpSyncMode = P_VDP_SYNC60HZ;
     } else {
         properties->emulation.vdpSyncMode = P_VDP_SYNC50HZ;
@@ -990,18 +999,15 @@ static void setupEmulatorRessources(int msxType)
     emulatorStartMachine(NULL, msxMachine);
     // Enable SCC and disable MSX-MUSIC as G&W is not powerfull enough to handle both at same time
     // If a game wants to play MSX-MUSIC sound, the mapper will detect it and it will disable SCC
-    // and enbale MSX-MUSIC
+    // and enable MSX-MUSIC
     mixerEnableChannelType(boardGetMixer(), MIXER_CHANNEL_SCC, 1);
     mixerEnableChannelType(boardGetMixer(), MIXER_CHANNEL_MSXMUSIC, 0);
 }
 
 void app_main_msx(uint8_t load_state, uint8_t start_paused)
 {
-    int frequency;
     odroid_dialog_choice_t options[10];
     bool drawFrame;
-    size_t offset = 0;
-    uint8_t volume = 0;
     dma_transfer_state_t last_dma_state = DMA_TRANSFER_STATE_HF;
 
     selected_disk_index = -1;
@@ -1027,21 +1033,34 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
 
     memset(lcd_get_active_buffer(), 0, sizeof(framebuffer1));
     memset(lcd_get_inactive_buffer(), 0, sizeof(framebuffer1));
+    memset(audiobuffer_dma, 0, 2*(AUDIO_MSX_SAMPLE_RATE/FPS_PAL)*sizeof(Int16));
 
     setupEmulatorRessources(selected_msx_index);
 
     if (load_state) {
         loadMsxState((UInt8 *)ACTIVE_FILE->save_address);
     }
-    emulatorSetFrequency(msx_fps , &frequency);
-    boardSetFrequency(frequency);
+
     while (1) {
+        // Frequency change check if in automatic mode
+        if ((selected_frequency_index == FREQUENCY_VDP_AUTO) && (msx_fps != boardInfo.getRefreshRate())) {
+            // Update ressources to switch system frequency
+            msx_fps = boardInfo.getRefreshRate();
+            common_emu_state.frame_time_10us = (uint16_t)(100000 / msx_fps + 0.5f);
+            memset(audiobuffer_dma, 0, sizeof(audiobuffer_dma));
+            HAL_SAI_DMAStop(&hsai_BlockA1);
+            HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, (2 * AUDIO_MSX_SAMPLE_RATE / msx_fps));
+            emulatorRestartSound();
+        }
         wdog_refresh();
         drawFrame = common_emu_frame_loop();
         odroid_gamepad_state_t joystick;
         odroid_input_read_gamepad(&joystick);
         common_emu_input_loop(&joystick, options);
+
         msxInputUpdate(&joystick);
+
+        // Render 1 frame
         ((R800*)boardInfo.cpuRef)->terminate = 0;
         boardInfo.run(boardInfo.cpuRef);
 
@@ -1050,18 +1069,8 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
             lcd_swap();
         }
 
-        offset = (dma_state == DMA_TRANSFER_STATE_HF) ? 0 : (AUDIO_MSX_SAMPLE_RATE/msx_fps);
-        mixerSyncAudioBuffer(mixer, &audiobuffer_dma[offset], (AUDIO_MSX_SAMPLE_RATE/msx_fps));
-        volume = odroid_audio_volume_get();
-        if (volume != currentVolume) {
-            if (volume == 0) {
-                mixerSetEnable(mixer,0);
-            } else {
-                mixerSetEnable(mixer,1);
-                mixerSetMasterVolume(mixer,volume_table[volume]);
-            }
-            currentVolume = volume;
-        }
+        // Render audio
+        mixerSyncGNW(mixer,(AUDIO_MSX_SAMPLE_RATE/msx_fps));
 
         if(!common_emu_state.skip_frames) {
             for(uint8_t p = 0; p < common_emu_state.pause_frames + 1; p++) {
@@ -1074,15 +1083,33 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
     }
 }
 
+static Int32 soundWrite(void* dummy, Int16 *buffer, UInt32 count)
+{
+    size_t offset = (dma_state == DMA_TRANSFER_STATE_HF) ? 0 : (AUDIO_MSX_SAMPLE_RATE/msx_fps);
+    uint8_t volume = odroid_audio_volume_get();
+    if (volume != currentVolume) {
+        if (volume == 0) {
+            mixerSetEnable(mixer,0);
+        } else {
+            mixerSetEnable(mixer,1);
+            mixerSetMasterVolume(mixer,volume_table[volume]);
+        }
+        currentVolume = volume;
+    }
+
+    memcpy(&audiobuffer_dma[offset],buffer,(AUDIO_MSX_SAMPLE_RATE/msx_fps)*sizeof(Int16));
+    return 0;
+}
+
 void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 channels) {
     // Init Sound
     memset(audiobuffer_dma, 0, sizeof(audiobuffer_dma));
 
     HAL_SAI_DMAStop(&hsai_BlockA1);
-    HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, 2 * AUDIO_MSX_SAMPLE_RATE / msx_fps);
+    HAL_SAI_Transmit_DMA(&hsai_BlockA1, (uint8_t *)audiobuffer_dma, 2*(AUDIO_MSX_SAMPLE_RATE / msx_fps));
 
     mixerSetStereo(mixer, 0);
-//    mixerSetSampleRate(mixer,AUDIO_MSX_SAMPLE_RATE);
+    mixerSetWriteCallback(mixer, soundWrite, NULL, (AUDIO_MSX_SAMPLE_RATE/msx_fps));
 }
 
 void archSoundDestroy(void) {}
