@@ -72,7 +72,7 @@ static int selected_key_index = 0;
 
 /* strings for options */
 static char disk_name[PROP_MAXPATH];
-static char msx_name[6];
+static char msx_name[11];
 static char key_name[10];
 static char frequency_name[5];
 static char a_button_name[10];
@@ -420,13 +420,13 @@ static bool update_msx_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t 
 
     switch (selected_msx_index) {
         case 0: // MSX1;
-            strcpy(option->value, "MSX1");
+            strcpy(option->value, "MSX1 (EUR)");
             break;
         case 1: // MSX2;
-            strcpy(option->value, "MSX2");
+            strcpy(option->value, "MSX2 (EUR)");
             break;
         case 2: // MSX2+;
-            strcpy(option->value, "MSX2+");
+            strcpy(option->value, "MSX2+ (JP)");
             break;
     }
 
