@@ -43,6 +43,7 @@ __license__ = "GPLv3"
 #include "gwenesis_bus.h"
 #include "gwenesis_io.h"
 #include "gwenesis_vdp.h"
+#include "gwenesis_savestate.h"
 
 #pragma GCC optimize("Ofast")
 
@@ -187,18 +188,16 @@ static odroid_gamepad_state_t joystick;
 
 static bool gwenesis_system_SaveState(char *pathName)
 {
-   // printf("Saving state...\n");
-
-    //   memset(state_save_buffer, '\x00', sizeof(state_save_buffer));
-    ////  store_save(ACTIVE_FILE->save_address, state_save_buffer, sizeof(state_save_buffer));
-    return false;
+  int size = 0;
+  printf("Saving state...\n");
+  size = saveGwenesisState((unsigned char *)ACTIVE_FILE->save_address, ACTIVE_FILE->save_size);
+  return true;
 }
 
 static bool gwenesis_system_LoadState(char *pathName)
 {
-    //printf("Loading state...\n");
-    //   return gwenesis_state_load(ACTIVE_FILE->save_address);
-    return false;
+  printf("Loading state...\n");
+  return loadGwenesisState((unsigned char *)ACTIVE_FILE->save_address);
 }
 
 /* Configurable keys mapping for A,B and C */
@@ -633,6 +632,9 @@ int app_main_gwenesis(uint8_t load_state, uint8_t start_paused)
    lcd_wait_for_vblank();
    gwenesis_sound_start();
 
+  if (load_state) {
+    loadGwenesisState((unsigned char *)ACTIVE_FILE->save_address);
+  }
    //gwenesis_init_position = 0xFFFF & lcd_get_pixel_position();
    while (true) {
 
