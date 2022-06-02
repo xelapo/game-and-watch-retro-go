@@ -179,7 +179,7 @@ SaveState* saveGwenesisStateOpenForRead(const char* fileName)
     return NULL;
 }
 
-int saveGwenesisStateGet(SaveState* state, const char* tagName, int defValue)
+int saveGwenesisStateGet(SaveState* state, const char* tagName)
 {
     int value;
 
