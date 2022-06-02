@@ -591,6 +591,12 @@ static odroid_dialog_choice_t options[] = {
 /* Main */
 int app_main_gwenesis(uint8_t load_state, uint8_t start_paused)
 {
+    if (start_paused) {
+        common_emu_state.pause_after_frames = 2;
+        odroid_audio_mute(true);
+    } else {
+        common_emu_state.pause_after_frames = 0;
+    }
 
     printf("Genesis start\n");
     odroid_system_init(APPID_MD, GWENESIS_AUDIO_FREQ_NTSC);
