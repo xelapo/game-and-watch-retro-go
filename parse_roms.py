@@ -1131,12 +1131,12 @@ class ROMParser:
         romdef.setdefault('gb', {})
         romdef.setdefault('nes', {})
         romdef.setdefault('sms', {})
-        romdef.setdefault('md', {})
         romdef.setdefault('gg', {})
         romdef.setdefault('col', {})
         romdef.setdefault('sg', {})
         romdef.setdefault('pce', {})
         romdef.setdefault('gw', {})
+        romdef.setdefault('md', {})
         romdef.setdefault('msx', {})
         romdef.setdefault('msx_bios', {})
         romdef.setdefault('wsv', {})
@@ -1187,6 +1187,8 @@ class ROMParser:
             None,
             current_id,
         )
+        if sega_larger_rom_size < larger_rom_size : sega_larger_rom_size = larger_rom_size
+
         total_save_size += save_size
         total_rom_size += rom_size
         total_img_size += img_size
@@ -1203,6 +1205,7 @@ class ROMParser:
             None,
             current_id,
         )
+        if sega_larger_rom_size < larger_rom_size : sega_larger_rom_size = larger_rom_size
         total_save_size += save_size
         total_rom_size += rom_size
         total_img_size += img_size
