@@ -104,7 +104,12 @@ static const uint8_t volume_table[ODROID_AUDIO_VOLUME_MAX + 1] = {
 static unsigned image_buffer_base_width;
 static unsigned image_buffer_current_width;
 static unsigned image_buffer_height;
+static unsigned width = 272;
+static unsigned height = 240;
 static int double_width;
+static bool use_overscan = true;
+static int msx2_dif = 0;
+static uint16_t palette565[256];
 
 #define FPS_NTSC  60
 #define FPS_PAL   50
@@ -163,25 +168,34 @@ void frameBufferDataDestroy(FrameBufferData* frameData){}
 void frameBufferSetActive(FrameBufferData* frameData){}
 void frameBufferSetMixMode(FrameBufferMixMode mode, FrameBufferMixMode mask){}
 void frameBufferClearDeinterlace(){}
-void frameBufferSetInterlace(FrameBuffer* frameBuffer, int val){}
 void archTrap(UInt8 value){}
 void videoUpdateAll(Video* video, Properties* properties){}
 
 /* framebuffer */
 
-uint16_t* frameBufferGetLine(FrameBuffer* frameBuffer, int y)
+static void update_fb_info() {
+    width  = use_overscan ? 272 : (272 - 16);
+    height = use_overscan ? 240 : (240 - 48 + (msx2_dif * 2));
+}
+
+Pixel* frameBufferGetLine(FrameBuffer* frameBuffer, int y)
 {
-   return (lcd_get_active_buffer() + sizeof(uint16_t) * (y * image_buffer_current_width + 24));
+   return (emulator_framebuffer +  (y * image_buffer_current_width));
+}
+
+Pixel16* frameBufferGetLine16(FrameBuffer* frameBuffer, int y)
+{
+   return (lcd_get_active_buffer() + sizeof(Pixel16) * (y * GW_LCD_WIDTH + 24));
 }
 
 FrameBuffer* frameBufferGetDrawFrame(void)
 {
-   return (void*)lcd_get_active_buffer();
+   return (void*)emulator_framebuffer;
 }
 
 FrameBuffer* frameBufferFlipDrawFrame(void)
 {
-   return (void*)lcd_get_active_buffer();
+   return (void*)emulator_framebuffer;
 }
 
 static int fbScanLine = 0;
@@ -198,12 +212,12 @@ int frameBufferGetScanline(void)
 
 FrameBufferData* frameBufferDataCreate(int maxWidth, int maxHeight, int defaultHorizZoom)
 {
-   return (void*)lcd_get_active_buffer();
+   return (void*)emulator_framebuffer;
 }
 
 FrameBufferData* frameBufferGetActive()
 {
-    return (void*)lcd_get_active_buffer();
+    return (void*)emulator_framebuffer;
 }
 
 void frameBufferSetLineCount(FrameBuffer* frameBuffer, int val)
@@ -427,12 +441,15 @@ static bool update_msx_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t 
 
     switch (selected_msx_index) {
         case 0: // MSX1;
+            msx2_dif = 0;
             strcpy(option->value, "MSX1 (EUR)");
             break;
         case 1: // MSX2;
+            msx2_dif = 10;
             strcpy(option->value, "MSX2 (EUR)");
             break;
         case 2: // MSX2+;
+            msx2_dif = 10;
             strcpy(option->value, "MSX2+ (JP)");
             break;
     }
@@ -710,6 +727,7 @@ static void createOptionMenu(odroid_dialog_choice_t *options) {
 static void setPropertiesMsx(Machine *machine, int msxType) {
     int i = 0;
 
+    msx2_dif = 0;
     switch(msxType) {
         case 0: // MSX1
             machine->board.type = BOARD_MSX;
@@ -756,6 +774,8 @@ static void setPropertiesMsx(Machine *machine, int msxType) {
             break;
 
         case 1: // MSX2
+            msx2_dif = 10;
+
             machine->board.type = BOARD_MSX_S3527;
             machine->video.vdpVersion = VDP_V9938;
             machine->video.vramSize = 128 * 1024;
@@ -824,6 +844,8 @@ static void setPropertiesMsx(Machine *machine, int msxType) {
             break;
 
         case 2: // MSX2+
+            msx2_dif = 10;
+
             machine->board.type = BOARD_MSX_T9769B;
             machine->video.vdpVersion = VDP_V9958;
             machine->video.vramSize = 128 * 1024;
@@ -1057,13 +1079,93 @@ static void setupEmulatorRessources(int msxType)
     mixerEnableChannelType(boardGetMixer(), MIXER_CHANNEL_MSXMUSIC, 0);
 }
 
+// No scaling
+__attribute__((optimize("unroll-loops")))
+static inline void blit_normal(uint8_t *msx_fb, uint16_t *framebuffer) {
+    const int w1 = image_buffer_current_width;
+    const int w2 = GW_LCD_WIDTH;
+    const int h2 = GW_LCD_HEIGHT;
+    const int hpad = 27;
+    uint8_t  *src_row;
+    uint16_t *dest_row;
+
+    for (int y = 0; y < h2; y++) {
+        src_row  = &msx_fb[y*w1];
+        dest_row = &framebuffer[y * w2 + hpad];
+        for (int x = 0; x < w1; x++) {
+            dest_row[x] = palette565[src_row[x]];
+        }
+    }
+}
+
+__attribute__((optimize("unroll-loops")))
+static inline void screen_blit_nn(uint8_t *msx_fb, uint16_t *framebuffer/*int32_t dest_width, int32_t dest_height*/)
+{
+    int w1 = width;
+    int h1 = height;
+    int w2 = GW_LCD_WIDTH;
+    int h2 = GW_LCD_HEIGHT;
+    int src_x_offset = 8;
+    int src_y_offset = 24 - (msx2_dif);
+
+    int x_ratio = (int)((w1<<16)/w2) +1;
+    int y_ratio = (int)((h1<<16)/h2) +1;
+    int hpad = 0;
+    int wpad = 0;
+
+    int x2;
+    int y2;
+
+    for (int i=0;i<h2;i++) {
+        for (int j=0;j<w2;j++) {
+            x2 = ((j*x_ratio)>>16) ;
+            y2 = ((i*y_ratio)>>16) ;
+            uint8_t b2 = msx_fb[((y2+src_y_offset)*image_buffer_current_width)+x2+src_x_offset];
+            framebuffer[((i+wpad)*WIDTH)+j+hpad] = palette565[b2];
+        }
+    }
+}
+
+static void blit(uint8_t *msx_fb, uint16_t *framebuffer)
+{
+    odroid_display_scaling_t scaling = odroid_display_get_scaling_mode();
+
+    switch (scaling) {
+    case ODROID_DISPLAY_SCALING_OFF:
+        use_overscan = true;
+        update_fb_info();
+        blit_normal(msx_fb, framebuffer);
+        break;
+    // Full height, borders on the side
+    case ODROID_DISPLAY_SCALING_FIT:
+    case ODROID_DISPLAY_SCALING_FULL:
+        use_overscan = false;
+        update_fb_info();
+        screen_blit_nn(msx_fb, framebuffer);
+        break;
+    default:
+        printf("Unsupported scaling mode %d\n", scaling);
+        break;
+    }
+}
+
 void app_main_msx(uint8_t load_state, uint8_t start_paused)
 {
+    pixel_t *fb;
     odroid_dialog_choice_t options[10];
     bool drawFrame;
     dma_transfer_state_t last_dma_state = DMA_TRANSFER_STATE_HF;
 
     selected_disk_index = -1;
+
+    // Create RGB8 to RGB565 table
+    for (int i = 0; i < 256; i++)
+    {
+        // RGB 8bits to RGB 565 (RRR|GGG|BB -> RRRRR|GGGGGG|BBBBB)
+        palette565[i] = (((i>>5)*31/7)<<11) |
+                         ((((i&0x1C)>>2)*63/7)<<5) |
+                         ((i&0x3)*31/3);
+    }
 
     if (load_state) {
         load_gnw_msx_data();
@@ -1079,12 +1181,14 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
     odroid_system_init(APPID_MSX, AUDIO_MSX_SAMPLE_RATE);
     odroid_system_emu_init(&msx_system_LoadState, &msx_system_SaveState, NULL);
 
-    image_buffer_base_width    =  320;
+    image_buffer_base_width    =  272;
     image_buffer_current_width =  image_buffer_base_width;
     image_buffer_height        =  240;
 
     memset(lcd_get_active_buffer(), 0, sizeof(framebuffer1));
     memset(lcd_get_inactive_buffer(), 0, sizeof(framebuffer1));
+    memset(emulator_framebuffer, 0, sizeof(emulator_framebuffer));
+    
     memset(audiobuffer_dma, 0, 2*(AUDIO_MSX_SAMPLE_RATE/FPS_PAL)*sizeof(Int16));
 
     setupEmulatorRessources(selected_msx_index);
@@ -1119,6 +1223,13 @@ void app_main_msx(uint8_t load_state, uint8_t start_paused)
         boardInfo.run(boardInfo.cpuRef);
 
         if (drawFrame) {
+            fb = lcd_get_active_buffer();
+            // If current MSX screen mode is 10 or 12, data has been directly written into
+            // framebuffer (scaling is not possible for these screen modes), elseway apply
+            // current scaling mode
+            if ((vdpGetScreenMode() != 10) && (vdpGetScreenMode() != 12)) {
+                blit(emulator_framebuffer, fb);
+            }
             common_ingame_overlay();
             lcd_swap();
         }
