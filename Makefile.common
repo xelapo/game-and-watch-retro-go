@@ -23,7 +23,7 @@ EXTFLASH_OFFSET ?= 0
 GNW_TARGET ?= mario
 
 OFF_SAVESTATE = 0
-ifeq ($(ADDITIONAL_OFF_SAVESTATE),1)
+ifeq ($(SHARED_HIBERNATE_SAVESTATE),1)
 	OFF_SAVESTATE = 1
 endif
 
@@ -800,7 +800,7 @@ help:
 	@echo "  ENABLE_SCREENSHOT   - Set to 1 to enable screenshot support (default disabled if extflash is 1MB)"
 	@echo "  GNW_TARGET          - Game & Watch target, Valid values {mario,zelda} (default=mario)"
 	@echo "  GAME_GENIE          - Set to 1 to enable game genie support (default=0)"
-	@echo "  ADDITIONAL_OFF_SAVESTATE - Set to 1 to enable a separate savestate for off/on (default=0)"
+	@echo "  SHARED_HIBERNATE_SAVESTATE - Set to 1 to enable a separate savestate for off/on (default=0)"
 	@echo ""
 	@echo "Current configuration:"
 	@echo "  EXTFLASH_FORCE_SPI=$(EXTFLASH_FORCE_SPI)"
