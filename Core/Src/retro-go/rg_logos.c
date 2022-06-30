@@ -535,6 +535,13 @@ const retro_logo_image header_wsv LOGO_DATA = {
     },
 };
 
+const retro_logo_image header_a7800 LOGO_DATA = {
+    0,
+    0,
+    {
+    },
+};
+
 const retro_logo_image pad_sg1000 LOGO_DATA = {
     56,
     32,
@@ -1011,6 +1018,13 @@ const retro_logo_image pad_wsv LOGO_DATA = {
     },
 };
 
+const retro_logo_image pad_a7800 LOGO_DATA = {
+    0,
+    0,
+    {
+    },
+};
+
 const retro_logo_image logo_coleco LOGO_DATA = {
     72,
     16,
@@ -1208,6 +1222,13 @@ const retro_logo_image logo_watara LOGO_DATA = {
         0x07, 0x87, 0xcf, 0x3c, 0x78, 0xf3, 0xde, 0x7b, 0xcf, //  _____####____#####__####__####___####___####__####_####__####_####__####
         0x03, 0x83, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //  ______###_____###_______________________________________________________
         0x03, 0x83, 0x9f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //  ______###_____###__#####################################################
+    },
+};
+
+const retro_logo_image logo_atari LOGO_DATA = {
+    0,
+    0,
+    {
     },
 };
 
