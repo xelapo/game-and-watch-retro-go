@@ -256,6 +256,20 @@ gwenesis/src/savestate/gwenesis_savestate.c \
 Core/Src/porting/gwenesis/main_gwenesis.c \
 Core/Src/porting/gwenesis/save_gwenesis.c
 
+WSWAN_C_SOURCES = \
+beetle-wswan-go/mednafen/mempatcher.c \
+beetle-wswan-go/mednafen/wswan-settings.c \
+beetle-wswan-go/mednafen/sound/Blip_Buffer.c \
+beetle-wswan-go/mednafen/wswan/wswan-eeprom.c \
+beetle-wswan-go/mednafen/wswan/wswan-gfx.c \
+beetle-wswan-go/mednafen/wswan/wswan-interrupt.c \
+beetle-wswan-go/mednafen/wswan/wswan-rtc.c \
+beetle-wswan-go/mednafen/wswan/wswan-sound.c \
+beetle-wswan-go/mednafen/wswan/wswan-tcache.c \
+beetle-wswan-go/mednafen/wswan/wswan-v30mz.c \
+beetle-wswan-go/mednafen/wswan/wswan-memory.c \
+Core/Src/porting/wswan/main_wswan.c
+
 GNUBOY_C_INCLUDES +=  \
 -ICore/Inc \
 -ICore/Src/porting/lib \
@@ -368,12 +382,23 @@ WSV_C_INCLUDES += \
 -ICore/Src/porting/lib/lzma \
 -Ipotator/common
 
+WSWAN_C_INCLUDES += \
+-ICore/Inc \
+-ICore/Src/porting/lib \
+-ICore/Src/porting/lib/lzma \
+-Ibeetle-wswan-go \
+-Ibeetle-wswan-go/libretro-common/include \
+-Ibeetle-wswan-go/mednafen \
+-Ibeetle-wswan-go/mednafen/include/blip \
+-Ibeetle-wswan-go/mednafen/sound \
+-Ibeetle-wswan-go/mednafen/wswan
+
 include Makefile.common
 
 
 $(BUILD_DIR)/$(TARGET)_extflash.bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
 	$(V)$(ECHO) [ BIN ] $(notdir $@)
-	$(V)$(BIN) -j ._itcram_hot -j ._ram_exec -j ._extflash -j .overlay_nes -j .overlay_gb -j .overlay_sms -j .overlay_col -j .overlay_pce -j .overlay_msx -j .overlay_gw -j .overlay_wsv -j .overlay_md $< $(BUILD_DIR)/$(TARGET)_extflash.bin
+	$(V)$(BIN) -j ._itcram_hot -j ._ram_exec -j ._extflash -j .overlay_nes -j .overlay_gb -j .overlay_sms -j .overlay_col -j .overlay_pce -j .overlay_msx -j .overlay_gw -j .overlay_wsv -j .overlay_md -j .overlay_wswan $< $(BUILD_DIR)/$(TARGET)_extflash.bin
 
 $(BUILD_DIR)/$(TARGET)_intflash.bin: $(BUILD_DIR)/$(TARGET).elf | $(BUILD_DIR)
 	$(V)$(ECHO) [ BIN ] $(notdir $@)

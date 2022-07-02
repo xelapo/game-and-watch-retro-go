@@ -88,6 +88,7 @@ SAVE_SIZES = {
     "gw": 4 * 1024,
     "wsv": 28 * 1024,
     "md": 176 * 1024,
+    "wswan": 0 * 1024,
 }
 
 
@@ -1143,6 +1144,7 @@ class ROMParser:
         romdef.setdefault('msx', {})
         romdef.setdefault('msx_bios', {})
         romdef.setdefault('wsv', {})
+        romdef.setdefault('wswan', {})
 
         system_save_size, save_size, rom_size, img_size, current_id, larger_rom_size = self.generate_system(
             "Core/Src/retro-go/gb_roms.c",
@@ -1372,6 +1374,23 @@ class ROMParser:
         total_save_size += save_size
         total_rom_size += rom_size
         build_config += "#define ENABLE_EMULATOR_WSV\n" if rom_size > 0 else ""
+        if system_save_size > larger_save_size : larger_save_size = system_save_size
+
+        system_save_size, save_size, rom_size, img_size, current_id, larger_rom_size = self.generate_system(
+            "Core/Src/retro-go/wswan_roms.c",
+            "Bandai WonderSwan",
+            "wswan_system",
+            "wswan",
+            ["ws","wsc"],
+            "SAVE_WSWAN_",
+            romdef["wswan"],
+            None,
+            current_id,
+            args.compress
+        )
+        total_save_size += save_size
+        total_rom_size += rom_size
+        build_config += "#define ENABLE_EMULATOR_WSWAN\n" if rom_size > 0 else ""
         if system_save_size > larger_save_size : larger_save_size = system_save_size
 
         total_size = total_save_size + total_rom_size + total_img_size

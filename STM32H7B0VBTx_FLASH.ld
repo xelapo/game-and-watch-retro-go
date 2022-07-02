@@ -424,7 +424,6 @@ SECTIONS
   }
   _OVERLAY_GW_BSS_SIZE = SIZEOF(.overlay_gw_bss);
 
-
   .overlay_md __RAM_EMU_START__ : {
     . = ALIGN(4);
     __ram_emu_md_start__ = .;
@@ -446,6 +445,28 @@ SECTIONS
     ASSERT(ABSOLUTE(_OVERLAY_MD_BSS_END) < __RAM_EMU_END__, "Error: MD BSS overflow");
   }
   _OVERLAY_MD_BSS_SIZE = SIZEOF(.overlay_md_bss);
+
+  .overlay_wswan __RAM_EMU_START__ : {
+    . = ALIGN(4);
+    __ram_emu_wswan_start__ = .;
+    build/wswan/*.o (.data. data* .text .text* .rodata .rodata*)
+    . = ALIGN(4);
+    _OVERLAY_WSWAN_LOAD_END = .;
+  } AT> EXTFLASH
+  _OVERLAY_WSWAN_LOAD_START = LOADADDR(.overlay_wswan);
+  _OVERLAY_WSWAN_SIZE = SIZEOF(.overlay_wswan);
+
+  .overlay_wswan_bss _OVERLAY_WSWAN_LOAD_END : {
+    . = ALIGN(4);
+    _OVERLAY_WSWAN_BSS_START = .;
+    build/wswan/*.o (.bss .bss*)
+    . = ALIGN(4);
+    build/wswan/*.o (COMMON)
+    __ram_emu_wswan_end__ = .;
+    _OVERLAY_WSWAN_BSS_END = .;
+    ASSERT(ABSOLUTE(_OVERLAY_WSWAN_BSS_END) < __RAM_EMU_END__, "Error: WSWAN BSS overflow");
+  }
+  _OVERLAY_WSWAN_BSS_SIZE = SIZEOF(.overlay_wswan_bss);
 
   /* Place this symbol after the last overlay definition */
   .overlay_end : {
