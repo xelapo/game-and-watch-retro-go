@@ -1092,6 +1092,12 @@ int odroid_overlay_game_menu(odroid_dialog_choice_t *extra_options)
         odroid_overlay_game_debug_menu();
         break;
     case 90:
+#if OFF_SAVESTATE == 1
+        // Slot 1 is a common slot used only for power off/power on
+        odroid_system_emu_save_state(1);
+#else
+        odroid_system_emu_save_state(0);
+#endif
         odroid_system_sleep();
         break;
     case 100:
