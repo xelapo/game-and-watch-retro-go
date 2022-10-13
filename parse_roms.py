@@ -318,10 +318,27 @@ def parse_msx_bios_files():
         print("Bad or missing roms/msx_bios/MSX.rom, check roms/msx_bios/README.md for info")
         return 0
 
-    if (sha1_for_file("roms/msx_bios/PANASONICDISK.rom") != "b9bce28fb74223ea902f82ebd107279624cf2aba"):
-        if (sha1_for_file("roms/msx_bios/PANASONICDISK.rom") == "7ed7c55e0359737ac5e68d38cb6903f9e5d7c2b6"):
-            print("Patching roms/msx_bios/PANASONICDISK.rom to disable 2nd FDD controller (= more free RAM)")
-            with open("roms/msx_bios/PANASONICDISK.rom", 'rb+') as f:
+    # We revert previously patched PANASONICDISK if needed as we changed how it is done
+    if (sha1_for_file("roms/msx_bios/PANASONICDISK.rom") == "b9bce28fb74223ea902f82ebd107279624cf2aba"):
+        print("Reverting patch on roms/msx_bios/PANASONICDISK.rom")
+        with open("roms/msx_bios/PANASONICDISK.rom", 'rb+') as f:
+            f.seek(0x17ec)
+            f.write(b'\x02')
+
+    if (sha1_for_file("roms/msx_bios/PANASONICDISK.rom") != "7ed7c55e0359737ac5e68d38cb6903f9e5d7c2b6"):
+        print("Bad or missing roms/msx_bios/PANASONICDISK.rom, check roms/msx_bios/README.md for info")
+        return 0
+
+    # PANASONICDISK_.rom is a patched version of PANASONICDISK.rom to disable the 2nd FDD
+    # this is allowing to free some ram, which is needed for some games. It could be done by pressing
+    # ctrl key at boot using original bios, but using this patched version, the user will have nothing
+    # to do. Unfortunately this version can't be used in all cases because some games (from Micro Cabin)
+    # like Fray, XAK III, 
+    if (sha1_for_file("roms/msx_bios/PANASONICDISK_.rom") != "b9bce28fb74223ea902f82ebd107279624cf2aba"):
+        shutil.copy("roms/msx_bios/PANASONICDISK.rom","roms/msx_bios/PANASONICDISK_.rom")
+        if (sha1_for_file("roms/msx_bios/PANASONICDISK_.rom") == "7ed7c55e0359737ac5e68d38cb6903f9e5d7c2b6"):
+            print("Patching roms/msx_bios/PANASONICDISK_.rom to disable 2nd FDD controller (= more free RAM)")
+            with open("roms/msx_bios/PANASONICDISK_.rom", 'rb+') as f:
                 f.seek(0x17ec)
                 f.write(b'\x00')
         else:
