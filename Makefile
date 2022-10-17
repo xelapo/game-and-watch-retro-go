@@ -177,10 +177,12 @@ $(CORE_MSX)/Src/Memory/romMapperKoei.c \
 $(CORE_MSX)/Src/Memory/romMapperKonami4.c \
 $(CORE_MSX)/Src/Memory/romMapperKonami4nf.c \
 $(CORE_MSX)/Src/Memory/romMapperKonami5.c \
+$(CORE_MSX)/Src/Memory/romMapperLodeRunner.c \
 $(CORE_MSX)/Src/Memory/romMapperMsxDos2.c \
 $(CORE_MSX)/Src/Memory/romMapperMsxMusic.c \
 $(CORE_MSX)/Src/Memory/romMapperNormal.c \
 $(CORE_MSX)/Src/Memory/romMapperPlain.c \
+$(CORE_MSX)/Src/Memory/romMapperRType.c \
 $(CORE_MSX)/Src/Memory/romMapperStandard.c \
 $(CORE_MSX)/Src/Memory/romMapperSunriseIDE.c \
 $(CORE_MSX)/Src/Memory/romMapperSCCplus.c \
