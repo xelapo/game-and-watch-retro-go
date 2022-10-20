@@ -1,3 +1,6 @@
+#include "build/config.h"
+#ifdef ENABLE_EMULATOR_MSX
+
 #include <odroid_system.h>
 
 #include "main.h"
@@ -216,3 +219,5 @@ void saveStateGetBuffer(SaveState* state, const char* tagName, void* buffer, UIn
 void saveStateCreateForRead(const char* fileName)
 {
 }
+
+#endif

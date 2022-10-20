@@ -1,3 +1,6 @@
+#include "build/config.h"
+#ifdef ENABLE_EMULATOR_MSX
+
 #include <odroid_system.h>
 #include <string.h>
 #include <stdio.h>
@@ -551,7 +554,16 @@ struct msx_key_info msx_keyboard[] = {
     {EC_UNDSCRE,"_",true},
     {EC_DIV,"/",true},
     {EC_LBRACK,"[",true},
-    {EC_RBRACK,"]",true},
+    {EC_RBRACK,"]",true}, // Index 70
+    {EC_COMMA,",",true},
+    {EC_PERIOD,".",true},
+    {EC_CLS,"CLS",true},
+    {EC_NEG,"-",true},
+    {EC_CIRCFLX,"^",true},
+    {EC_BKSLASH,"\\",true},
+    {EC_AT,"AT",true},
+    {EC_TORIKE,"Torike",true},
+    {EC_JIKKOU,"Jikkou",true},
 };
 
 #define RELEASE_KEY_DELAY 5
@@ -1157,6 +1169,30 @@ static void insertGame() {
             msx_button_start_key = EC_STOP; // Continue
             msx_button_select_key = EC_STOP; // Menu
         break;
+        case 22: // R-TYPE
+            msx_button_a_key_index = 5; /* EC_SPACE index */
+            msx_button_b_key_index = 8; /* EC_GRAPH index */
+            msx_button_game_key = EC_ESC;
+            msx_button_time_key = EC_ESC;
+            msx_button_start_key = EC_ESC;
+            msx_button_select_key = EC_ESC;
+        break;
+        case 23: // Super Lode Runner
+            msx_button_a_key_index = 66; /* EC_UNDSCRE index */
+            msx_button_b_key_index = 67; /* EC_DIV index */
+            msx_button_game_key = EC_SPACE;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_SPACE;
+            msx_button_select_key = EC_STOP;
+        break;
+        case 24: // Lode Runner 1 & 2
+            msx_button_a_key_index = 62; /* EC_X index */
+            msx_button_b_key_index = 64; /* EC_Z index */
+            msx_button_game_key = EC_SPACE;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_SPACE;
+            msx_button_select_key = EC_STOP;
+        break;
         default:
             controls_found = false;
         break;
@@ -1502,3 +1538,5 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
 }
 
 void archSoundDestroy(void) {}
+
+#endif

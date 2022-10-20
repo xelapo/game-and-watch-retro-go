@@ -16,6 +16,8 @@ __contact__ = "https://github.com/bzhxx"
 __license__ = "GPLv3"
 
 */
+#include "build/config.h"
+#ifdef ENABLE_EMULATOR_MD
 
 #include <odroid_system.h>
 #include <stdint.h>
@@ -896,3 +898,4 @@ int app_main_gwenesis(uint8_t load_state, uint8_t start_paused, uint8_t save_slo
 
     } // end of loop
 }
+#endif

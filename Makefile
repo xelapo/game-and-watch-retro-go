@@ -254,7 +254,7 @@ gwenesis/src/io/gwenesis_io.c \
 gwenesis/src/vdp/gwenesis_vdp_mem.c \
 gwenesis/src/vdp/gwenesis_vdp_gfx.c \
 gwenesis/src/savestate/gwenesis_savestate.c \
-gwenesis/src/porting/gwenesis/save_gwenesis.c \
+Core/Src/porting/gwenesis/save_gwenesis.c \
 Core/Src/porting/gwenesis/main_gwenesis.c
 
 A7800_C_SOURCES = \
@@ -279,6 +279,7 @@ GNUBOY_C_INCLUDES +=  \
 -ICore/Src/porting/lib/lzma \
 -Iretro-go-stm32/components/odroid \
 -Iretro-go-stm32/gnuboy-go/components \
+-I./
 
 NES_C_INCLUDES +=  \
 -ICore/Inc \
@@ -289,6 +290,7 @@ NES_C_INCLUDES +=  \
 -Iretro-go-stm32/nofrendo-go/components/nofrendo/nes \
 -Iretro-go-stm32/nofrendo-go/components/nofrendo \
 -Iretro-go-stm32/components/odroid \
+-I./
 
 SMSPLUSGX_C_INCLUDES +=  \
 -ICore/Inc \
@@ -299,6 +301,7 @@ SMSPLUSGX_C_INCLUDES +=  \
 -Iretro-go-stm32/smsplusgx-go/components/smsplus \
 -Iretro-go-stm32/smsplusgx-go/components/smsplus/cpu \
 -Iretro-go-stm32/smsplusgx-go/components/smsplus/sound \
+-I./
 
 PCE_C_INCLUDES +=  \
 -ICore/Inc \
@@ -310,6 +313,7 @@ PCE_C_INCLUDES +=  \
 -Iretro-go-stm32/smsplusgx-go/components/smsplus \
 -Iretro-go-stm32/smsplusgx-go/components/smsplus/cpu \
 -Iretro-go-stm32/smsplusgx-go/components/smsplus/sound \
+-I./
 
 GW_C_INCLUDES +=  \
 -ICore/Inc \
@@ -319,6 +323,7 @@ GW_C_INCLUDES +=  \
 -ILCD-Game-Emulator/src \
 -ILCD-Game-Emulator/src/cpus \
 -ILCD-Game-Emulator/src/gw_sys \
+-I./
 
 MD_C_INCLUDES +=  \
 -ICore/Inc \
@@ -331,7 +336,9 @@ MD_C_INCLUDES +=  \
 -Igwenesis/src/bus \
 -Igwenesis/src/vdp \
 -Igwenesis/src/io \
--Igwenesis/src/savestate
+-Igwenesis/src/savestate \
+-I./
+
 
 C_INCLUDES +=  \
 -ICore/Inc \
@@ -344,6 +351,7 @@ C_INCLUDES +=  \
 -Iretro-go-stm32/components/odroid \
 -Iretro-go-stm32/gnuboy-go/components \
 -Iretro-go-stm32/smsplusgx-go/components/smsplus \
+-I./
 
 GNUBOY_C_INCLUDES +=  \
 -ICore/Inc \
@@ -351,6 +359,7 @@ GNUBOY_C_INCLUDES +=  \
 -ICore/Src/porting/lib/lzma \
 -Iretro-go-stm32/components/odroid \
 -Iretro-go-stm32/gnuboy-go/components \
+-I./
 
 MSX_C_INCLUDES += \
 -ICore/Inc \
@@ -377,19 +386,22 @@ MSX_C_INCLUDES += \
 -I$(CORE_MSX)/Src/VideoRender \
 -I$(CORE_MSX)/Src/Z80 \
 -I$(CORE_MSX)/Src/Input \
--I$(CORE_MSX)/Src/Libretro
+-I$(CORE_MSX)/Src/Libretro \
+-I./
 
 WSV_C_INCLUDES += \
 -ICore/Inc \
 -ICore/Src/porting/lib \
 -ICore/Src/porting/lib/lzma \
--Ipotator/common
+-Ipotator/common \
+-I./
 
 A7800_C_INCLUDES += \
 -ICore/Inc \
 -ICore/Src/porting/lib \
 -ICore/Src/porting/lib/lzma \
--Iprosystem-go/core
+-Iprosystem-go/core \
+-I./
 
 include Makefile.common
 

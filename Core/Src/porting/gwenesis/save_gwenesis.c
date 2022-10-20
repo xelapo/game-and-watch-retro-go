@@ -1,3 +1,6 @@
+#include "build/config.h"
+#ifdef ENABLE_EMULATOR_MD
+
 #include <odroid_system.h>
 
 #include "main.h"
@@ -193,3 +196,4 @@ void saveGwenesisStateGetBuffer(SaveState* state, const char* tagName, void* buf
     memcpy(buffer, state->buffer + state->offset, length);
     state->offset += length;
 }
+#endif
