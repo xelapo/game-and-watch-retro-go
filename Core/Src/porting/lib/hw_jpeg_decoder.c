@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include "hw_jpeg_decoder.h"
 #include "main.h"
