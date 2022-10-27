@@ -7675,6 +7675,18 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		</dump>
 	</software>
 	<software>
+		<title xml:lang="en">Dynamite Go! Go!</title>
+		<system>MSX</system>
+		<controls>25</controls>
+		<dump>
+			<original value="false" />
+			<rom>
+				<type>mirrored</type>
+				<hash algo="sha1">ebcf5458f73a1b8c3e233a330cb5c60824831c12</hash>
+			</rom>
+		</dump>
+	</software>
+	<software>
 		<title xml:lang="en">E.I. - Exa Innova</title>
 		<system>MSX</system>
 		<company>Programmers-3</company>
@@ -18827,6 +18839,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Dempa</company>
 		<year>1984</year>
 		<country>JP</country>
+		<controls>26</controls>
 		<dump>
 			<original value="false" />
 			<rom>
@@ -18994,6 +19007,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Hal</company>
 		<year>1984</year>
 		<country>JP</country>
+		<controls>0</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<rom>
@@ -21151,6 +21165,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Irem</company>
 		<year>1986</year>
 		<country>JP</country>
+		<controls>0</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<rom>
@@ -22348,6 +22363,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Pony Canyon</company>
 		<year>1984</year>
 		<country>JP</country>
+		<controls>0</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<rom>
@@ -22379,6 +22395,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Pony Canyon</company>
 		<year>1984</year>
 		<country>JP</country>
+		<controls>0</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<rom>
@@ -23202,6 +23219,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Nice Ideas</company>
 		<year>1985</year>
 		<country>FR</country>
+		<controls>27</controls>
 		<dump>
 			<original value="false" />
 			<rom>
@@ -23553,6 +23571,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Pack In Video</company>
 		<year>1985</year>
 		<country>JP</country>
+		<controls>15</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<rom>
@@ -23600,6 +23619,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Pack In Video</company>
 		<year>1985</year>
 		<country>JP</country>
+		<controls>15</controls>
 		<dump>
 			<original value="false" />
 			<rom>
@@ -24125,6 +24145,20 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		</dump>
 	</software>
 	<software>
+		<title xml:lang="en">Robo Rumble</title>
+		<system>MSX</system>
+		<company>Robosoft Inc.</company>
+		<year>2022</year>
+		<controls>29</controls>
+		<dump>
+			<original value="false" />
+			<rom>
+				<type>mirrored</type>
+				<hash algo="sha1">bc27176895db53c961bef132733e5d5b77d30e6a</hash>
+			</rom>
+		</dump>
+	</software>
+	<software>
 		<title xml:lang="en">Robo Wres 2001</title>
 		<system>MSX</system>
 		<company>Micronet</company>
@@ -24250,6 +24284,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Hal</company>
 		<year>1984</year>
 		<country>JP</country>
+		<controls>28</controls>
 		<dump>
 			<original value="false" />
 			<megarom>
@@ -25118,6 +25153,18 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 					<text>Only for MSX1 Arabic and MSX2 Arabic</text>
 				</remark>
 			</rom>
+		</dump>
+	</software>
+	<software>
+		<title xml:lang="en">Sector 88</title>
+		<system>MSX</system>
+		<controls>7</controls>
+		<dump>
+			<original value="false" />
+			<megarom>
+				<type>KonamiSCC</type>
+				<hash algo="sha1">7912c35396604c1a67843778d235871a52fd5588</hash>
+			</megarom>
 		</dump>
 	</software>
 	<software>
@@ -32187,6 +32234,17 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		</dump>
 	</software>
 	<software>
+		<title xml:lang="en">Multiverse</title>
+		<system>MSX</system>
+		<controls>7</controls>
+		<dump>
+			<megarom>
+				<type>mirrored</type>
+				<hash algo="sha1">cf9035991c631717a39c336f19d89fbf1d952ba2</hash>
+			</megarom>
+		</dump>
+	</software>
+	<software>
 		<title xml:lang="en">Cockpit, The</title>
 		<system>MSX</system>
 		<company>Taito</company>
@@ -34533,6 +34591,21 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		</dump>
 	</software>
 	<software>
+		<title xml:lang="en">Los Amores de Brunilda</title>
+		<system>MSX</system>
+		<company>Retroworks</company>
+		<year>2019</year>
+		<country>ES</country>
+		<controls>30</controls>
+		<dump>
+			<original value="false" />
+			<megarom>
+				<type>KonamiSCC</type>
+				<hash algo="sha1">db1513dff6dd456fc973286816129ace81bcdfdd</hash>
+			</megarom>
+		</dump>
+	</software>
+	<software>
 		<title xml:lang="en">Mad Rider</title>
 		<system>MSX</system>
 		<company>Carry Lab</company>
@@ -35267,6 +35340,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Hal</company>
 		<year>1987</year>
 		<country>JP</country>
+		<controls>15</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<megarom>
@@ -35727,11 +35801,22 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Bit2</company>
 		<year>1988</year>
 		<country>JP</country>
+		<controls>20</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<megarom>
 				<type>ASCII8</type>
 				<hash algo="sha1">c82c6e054313f4c8864e64897baea8b63776020d</hash>
+			</megarom>
+		</dump>
+		<dump>
+			<original value="false" />
+			<megarom>
+				<type>ASCII8</type>
+				<hash algo="sha1">cec9f58b9ce61ada4baa24611c8353038415d173</hash>
+				<remark>
+					<text>English translation</text>
+				</remark>
 			</megarom>
 		</dump>
 	</software>
@@ -35741,6 +35826,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Taito</company>
 		<year>1988</year>
 		<country>JP</country>
+		<controls>15</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<megarom>
@@ -36391,6 +36477,7 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 		<company>Pack In Video</company>
 		<year>1986</year>
 		<country>JP</country>
+		<controls>15</controls>
 		<dump>
 			<original value="true">GoodMSX</original>
 			<megarom>

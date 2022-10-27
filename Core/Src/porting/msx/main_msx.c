@@ -70,8 +70,12 @@ static int selected_msx_index = 2;
 static int selected_frequency_index = FREQUENCY_VDP_AUTO;
 
 static odroid_gamepad_state_t previous_joystick_state;
-int msx_button_a_key_index = 5; /* EC_SPACE index */
-int msx_button_b_key_index = 7; /* EC_CTRL index */
+int msx_button_left_key = EC_LEFT;
+int msx_button_right_key = EC_RIGHT;
+int msx_button_up_key = EC_UP;
+int msx_button_down_key = EC_DOWN;
+int msx_button_a_key = EC_SPACE;
+int msx_button_b_key = EC_CTRL;
 int msx_button_game_key = EC_RETURN;
 int msx_button_time_key = EC_CTRL;
 int msx_button_start_key = EC_RETURN;
@@ -154,8 +158,8 @@ void save_gnw_msx_data() {
     state = saveStateOpenForWrite("main_msx");
     saveStateSet(state, "selected_msx_index", selected_msx_index);
     saveStateSet(state, "selected_disk_index", selected_disk_index);
-    saveStateSet(state, "msx_button_a_key_index", msx_button_a_key_index);
-    saveStateSet(state, "msx_button_b_key_index", msx_button_b_key_index);
+    saveStateSet(state, "msx_button_a_key", msx_button_a_key);
+    saveStateSet(state, "msx_button_b_key", msx_button_b_key);
     saveStateSet(state, "selected_frequency_index", selected_frequency_index);
     saveStateSet(state, "selected_key_index", selected_key_index);
     saveStateSet(state, "msx_fps", msx_fps);
@@ -168,8 +172,8 @@ void load_gnw_msx_data(UInt8 *address) {
         state = saveStateOpenForRead("main_msx");
         selected_msx_index = saveStateGet(state, "selected_msx_index", 0);
         selected_disk_index = saveStateGet(state, "selected_disk_index", 0);
-        msx_button_a_key_index = saveStateGet(state, "msx_button_a_key_index", 0);
-        msx_button_b_key_index = saveStateGet(state, "msx_button_b_key_index", 0);
+        msx_button_a_key = saveStateGet(state, "msx_button_a_key", 0);
+        msx_button_b_key = saveStateGet(state, "msx_button_b_key", 0);
         selected_frequency_index = saveStateGet(state, "selected_frequency_index", 0);
         selected_key_index = saveStateGet(state, "selected_key_index", 0);
         msx_fps = saveStateGet(state, "msx_fps", 0);
@@ -598,64 +602,84 @@ static bool update_keyboard_cb(odroid_dialog_choice_t *option, odroid_dialog_eve
 static bool update_a_button_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t event, uint32_t repeat)
 {
     int max_index = sizeof(msx_keyboard)/sizeof(msx_keyboard[0])-1;
+    int msx_button_key_index = 0;
+
+    // find index for current key
+    for (int i = 0; i <= max_index; i++) {
+        if (msx_keyboard[i].key_id == msx_button_a_key) {
+            msx_button_key_index = i;
+            break;
+        }
+    }
 
     if (event == ODROID_DIALOG_PREV) {
-        msx_button_a_key_index = msx_button_a_key_index > 0 ? msx_button_a_key_index - 1 : max_index;
+        msx_button_key_index = msx_button_key_index > 0 ? msx_button_key_index - 1 : max_index;
     }
     if (event == ODROID_DIALOG_NEXT) {
-        msx_button_a_key_index = msx_button_a_key_index < max_index ? msx_button_a_key_index + 1 : 0;
+        msx_button_key_index = msx_button_key_index < max_index ? msx_button_key_index + 1 : 0;
     }
 
-    strcpy(option->value, msx_keyboard[msx_button_a_key_index].name);
+    msx_button_a_key = msx_keyboard[msx_button_key_index].key_id;
+    strcpy(option->value, msx_keyboard[msx_button_key_index].name);
     return event == ODROID_DIALOG_ENTER;
 }
 
 static bool update_b_button_cb(odroid_dialog_choice_t *option, odroid_dialog_event_t event, uint32_t repeat)
 {
     int max_index = sizeof(msx_keyboard)/sizeof(msx_keyboard[0])-1;
+    int msx_button_key_index = 0;
+
+    // find index for current key
+    for (int i = 0; i <= max_index; i++) {
+        if (msx_keyboard[i].key_id == msx_button_b_key) {
+            msx_button_key_index = i;
+            break;
+        }
+    }
 
     if (event == ODROID_DIALOG_PREV) {
-        msx_button_b_key_index = msx_button_b_key_index > 0 ? msx_button_b_key_index - 1 : max_index;
+        msx_button_key_index = msx_button_key_index > 0 ? msx_button_key_index - 1 : max_index;
     }
     if (event == ODROID_DIALOG_NEXT) {
-        msx_button_b_key_index = msx_button_b_key_index < max_index ? msx_button_b_key_index + 1 : 0;
+        msx_button_key_index = msx_button_key_index < max_index ? msx_button_key_index + 1 : 0;
     }
 
-    strcpy(option->value, msx_keyboard[msx_button_b_key_index].name);
+    msx_button_b_key = msx_keyboard[msx_button_key_index].key_id;
+    strcpy(option->value, msx_keyboard[msx_button_key_index].name);
     return event == ODROID_DIALOG_ENTER;
 }
 
 static void msxInputUpdate(odroid_gamepad_state_t *joystick)
 {
     if ((joystick->values[ODROID_INPUT_LEFT]) && !previous_joystick_state.values[ODROID_INPUT_LEFT]) {
-        eventMap[EC_LEFT]  = 1;
+        eventMap[msx_button_left_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_LEFT]) && previous_joystick_state.values[ODROID_INPUT_LEFT]) {
-        eventMap[EC_LEFT]  = 0;
+        eventMap[msx_button_left_key]  = 0;
     }
     if ((joystick->values[ODROID_INPUT_RIGHT]) && !previous_joystick_state.values[ODROID_INPUT_RIGHT]) {
-        eventMap[EC_RIGHT]  = 1;
+        eventMap[msx_button_right_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_RIGHT]) && previous_joystick_state.values[ODROID_INPUT_RIGHT]) {
-        eventMap[EC_RIGHT]  = 0;
+        eventMap[msx_button_right_key]  = 0;
     }
     if ((joystick->values[ODROID_INPUT_UP]) && !previous_joystick_state.values[ODROID_INPUT_UP]) {
-        eventMap[EC_UP]  = 1;
+        eventMap[msx_button_up_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_UP]) && previous_joystick_state.values[ODROID_INPUT_UP]) {
-        eventMap[EC_UP]  = 0;
+        eventMap[msx_button_up_key]  = 0;
     }
     if ((joystick->values[ODROID_INPUT_DOWN]) && !previous_joystick_state.values[ODROID_INPUT_DOWN]) {
-        eventMap[EC_DOWN]  = 1;
+        eventMap[msx_button_down_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_DOWN]) && previous_joystick_state.values[ODROID_INPUT_DOWN]) {
-        eventMap[EC_DOWN]  = 0;
+        eventMap[msx_button_down_key]  = 0;
     }
     if ((joystick->values[ODROID_INPUT_A]) && !previous_joystick_state.values[ODROID_INPUT_A]) {
-        eventMap[msx_keyboard[msx_button_a_key_index].key_id]  = 1;
+        eventMap[msx_button_a_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_A]) && previous_joystick_state.values[ODROID_INPUT_A]) {
-        eventMap[msx_keyboard[msx_button_a_key_index].key_id]  = 0;
+        eventMap[msx_button_a_key]  = 0;
     }
     if ((joystick->values[ODROID_INPUT_B]) && !previous_joystick_state.values[ODROID_INPUT_B]) {
-        eventMap[msx_keyboard[msx_button_b_key_index].key_id]  = 1;
+        eventMap[msx_button_b_key]  = 1;
     } else if (!(joystick->values[ODROID_INPUT_B]) && previous_joystick_state.values[ODROID_INPUT_B]) {
-        eventMap[msx_keyboard[msx_button_b_key_index].key_id]  = 0;
+        eventMap[msx_button_b_key]  = 0;
     }
     // Game button on G&W
     if ((joystick->values[ODROID_INPUT_START]) && !previous_joystick_state.values[ODROID_INPUT_START]) {
@@ -984,150 +1008,153 @@ static void insertGame() {
     char game_name[PROP_MAXPATH];
     bool controls_found = true;
     sprintf(game_name,"%s.%s",ACTIVE_FILE->name,ACTIVE_FILE->ext);
-    // Profiles
-    // 0 : Button A : Space, Button B : ctrl, Game = return, Time = ctrl, start = return, select = ctrl
-    // 1 : Button A : Space, Button B : n   , Game = F4, Time = F3, start = F1, select = F2 (Konami style)
+
+    // default config
+    msx_button_right_key = EC_RIGHT;
+    msx_button_left_key = EC_LEFT;
+    msx_button_up_key = EC_UP;
+    msx_button_down_key = EC_DOWN;
+    msx_button_a_key = EC_SPACE;
+    msx_button_b_key = EC_CTRL;
+    msx_button_game_key = EC_RETURN;
+    msx_button_time_key = EC_CTRL;
+    msx_button_start_key = EC_RETURN;
+    msx_button_select_key = EC_CTRL;
 
     switch (ACTIVE_FILE->controls_profile) {
-        case 0:
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 7; /* EC_CTRL index */
-            msx_button_game_key = EC_RETURN;
-            msx_button_time_key = EC_CTRL;
-            msx_button_start_key = EC_RETURN;
-            msx_button_select_key = EC_CTRL;
+        case 0: // Default configuration
         break;
         case 1: // Konami
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 52; /* n key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_N;
             msx_button_game_key = EC_F4;
             msx_button_time_key = EC_F3;
             msx_button_start_key = EC_F1;
             msx_button_select_key = EC_F2;
         break;
         case 2: // Compile
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 6; /* Left Shift key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_LSHIFT;
             msx_button_game_key = EC_STOP;
             msx_button_time_key = EC_Z;
             msx_button_start_key = EC_STOP;
             msx_button_select_key = EC_Z;
         break;
         case 3: // YS I
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 14; /* EC_RETURN key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_RETURN;
             msx_button_game_key = EC_S; // Status
             msx_button_time_key = EC_I; // Inventory
-            msx_button_start_key = EC_RETURN; // Return
+            msx_button_start_key = EC_S; // Return
             msx_button_select_key = EC_I; // Inventory
         break;
         case 4: // YS II
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 14; /* EC_RETURN key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_RETURN;
             msx_button_game_key = EC_E; // Equipment
             msx_button_time_key = EC_I; // Inventory
             msx_button_start_key = EC_RETURN;
             msx_button_select_key = EC_S; // Status
         break;
         case 5: // YS III
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 62; /* X key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_X;
             msx_button_game_key = EC_RETURN;
             msx_button_time_key = EC_I; // Inventory
             msx_button_start_key = EC_RETURN;
             msx_button_select_key = EC_S; // Status
         break;
         case 6: // H.E.R.O.
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 5; /* EC_SPACE index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_SPACE;
             msx_button_game_key = EC_1; // Start level 1
             msx_button_time_key = EC_2; // Start level 5
             msx_button_start_key = EC_1; // Start level 1
             msx_button_select_key = EC_2; // Start level 5
         break;
         case 7: // SD Snatcher, Arsene Lupin 3rd, ...
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 8; /* EC_GRAPH index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_GRAPH;
             msx_button_game_key = EC_F1; // Pause
             msx_button_time_key = EC_F1; // Pause
             msx_button_start_key = EC_F1; // Pause
             msx_button_select_key = EC_F1; // Pause
         break;
         case 8: // Konami key 2 = Keyboard
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 52; /* n key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_N;
             msx_button_game_key = EC_2;
             msx_button_time_key = EC_STOP;
             msx_button_start_key = EC_2;
             msx_button_select_key = EC_STOP;
         break;
         case 9: // Konami key 3 = Keyboard
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 52; /* n key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_N;
             msx_button_game_key = EC_3;
             msx_button_time_key = EC_STOP;
             msx_button_start_key = EC_3;
             msx_button_select_key = EC_STOP;
         break;
         case 10: // Konami Green Beret
-            msx_button_a_key_index = 6; /* Left Shift key index */
-            msx_button_b_key_index = 6; /* Left Shift key index */
+            msx_button_a_key = EC_LSHIFT;
+            msx_button_b_key = EC_LSHIFT;
             msx_button_game_key = EC_STOP;
             msx_button_time_key = EC_STOP;
             msx_button_start_key = EC_STOP;
             msx_button_select_key = EC_STOP;
         break;
         case 11: // Dragon Slayer 4
-            msx_button_a_key_index = 6; /* Left Shift key index / Jump */
-            msx_button_b_key_index = 64; /* Z key index / Magic */
+            msx_button_a_key = EC_LSHIFT; // Jump
+            msx_button_b_key = EC_Z; // Magic
             msx_button_game_key = EC_RETURN; // Menu selection
             msx_button_time_key = EC_ESC; // Inventory
             msx_button_start_key = EC_RETURN;
             msx_button_select_key = EC_ESC;
         break;
         case 12: // Dragon Slayer 6
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 6; /* Left Shift key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_LSHIFT;
             msx_button_game_key = EC_RETURN;
             msx_button_time_key = EC_ESC;
             msx_button_start_key = EC_RETURN;
             msx_button_select_key = EC_ESC;
         break;
         case 13: // Dunk Shot
-            msx_button_a_key_index = 68; /* EC_LBRACK index */
-            msx_button_b_key_index = 14; /* Return key index */
+            msx_button_a_key = EC_LBRACK;
+            msx_button_b_key = EC_RETURN;
             msx_button_game_key = EC_SPACE;
             msx_button_time_key = EC_SPACE;
             msx_button_start_key = EC_SPACE;
             msx_button_select_key = EC_SPACE;
         break;
         case 14: //Eggerland Mystery
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_a_key_index = 5; /* EC_SPACE index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_a_key = EC_SPACE;
             msx_button_game_key = EC_SPACE;
             msx_button_time_key = EC_STOP; // Suicide
             msx_button_start_key = EC_SPACE;
             msx_button_select_key = EC_STOP;
         break;
         case 15: // Famicle Parodic, 1942
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 8; /* EC_GRAPH index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_GRAPH;
             msx_button_game_key = EC_STOP; // Pause
             msx_button_time_key = EC_STOP; // Pause
             msx_button_start_key = EC_STOP; // Pause
             msx_button_select_key = EC_STOP; // Pause
         break;
         case 16: // Laydock 2
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 6; /* Left Shift key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_LSHIFT;
             msx_button_game_key = EC_RETURN;
             msx_button_time_key = EC_STOP;
             msx_button_start_key = EC_RETURN;
             msx_button_select_key = EC_STOP;
         break;
         case 17: // Fray - In Magical Adventure
-            msx_button_a_key_index = 41; /* EC_C index */
-            msx_button_b_key_index = 62; /* EC_X key index */
+            msx_button_a_key = EC_C;
+            msx_button_b_key = EC_X;
             msx_button_game_key = EC_LSHIFT;
             msx_button_time_key = EC_SPACE;
             msx_button_start_key = EC_LSHIFT;
@@ -1136,8 +1163,8 @@ static void insertGame() {
         case 18: // XAK 1
             // Note : If you press Space + Return, you enter main menu
             // which is allowing to go to Equipment/Items/System menu
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 14; /* EC_RETURN key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_RETURN;
             msx_button_game_key = EC_F2; // Equipment
             msx_button_time_key = EC_F3; // Items
             msx_button_start_key = EC_RETURN;
@@ -1146,52 +1173,115 @@ static void insertGame() {
         case 19: // XAK 2/3
             // Note : If you press Space + Return, you enter main menu
             // which is allowing to go to Equipment/Items/System menu
-            msx_button_a_key_index = 41; /* EC_C index */
-            msx_button_b_key_index = 62; /* EC_X key index */
+            msx_button_a_key = EC_C;
+            msx_button_b_key = EC_X;
             msx_button_game_key = EC_F2; // Equipment
             msx_button_time_key = EC_F3; // Items
             msx_button_start_key = EC_RETURN;
             msx_button_select_key = EC_F4; // System Menu
         break;
         case 20: // Ghost
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 8; /* EC_GRAPH index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_GRAPH;
             msx_button_game_key = EC_F5; // Continue
             msx_button_time_key = EC_F1; // Menu
             msx_button_start_key = EC_F5; // Continue
             msx_button_select_key = EC_F1; // Menu
         break;
         case 21: // Golvellius II
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 6; /* Left Shift key index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_LSHIFT;
             msx_button_game_key = EC_STOP; // Continue
             msx_button_time_key = EC_STOP; // Menu
             msx_button_start_key = EC_STOP; // Continue
             msx_button_select_key = EC_STOP; // Menu
         break;
         case 22: // R-TYPE
-            msx_button_a_key_index = 5; /* EC_SPACE index */
-            msx_button_b_key_index = 8; /* EC_GRAPH index */
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_GRAPH;
             msx_button_game_key = EC_ESC;
             msx_button_time_key = EC_ESC;
             msx_button_start_key = EC_ESC;
             msx_button_select_key = EC_ESC;
         break;
         case 23: // Super Lode Runner
-            msx_button_a_key_index = 66; /* EC_UNDSCRE index */
-            msx_button_b_key_index = 67; /* EC_DIV index */
+            msx_button_a_key = EC_UNDSCRE;
+            msx_button_b_key = EC_DIV;
             msx_button_game_key = EC_SPACE;
             msx_button_time_key = EC_STOP;
             msx_button_start_key = EC_SPACE;
             msx_button_select_key = EC_STOP;
         break;
         case 24: // Lode Runner 1 & 2
-            msx_button_a_key_index = 62; /* EC_X index */
-            msx_button_b_key_index = 64; /* EC_Z index */
+            msx_button_a_key = EC_X;
+            msx_button_b_key = EC_Z;
             msx_button_game_key = EC_SPACE;
             msx_button_time_key = EC_STOP;
             msx_button_start_key = EC_SPACE;
             msx_button_select_key = EC_STOP;
+        break;
+        case 25: // Dynamite Go Go
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_C;
+            msx_button_game_key = EC_STOP;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_STOP;
+            msx_button_select_key = EC_STOP;
+        break;
+        case 26: // Moon Patrol
+            msx_button_a_key = EC_SPACE; // Fire
+            msx_button_b_key = EC_RIGHT; // Jump
+            msx_button_game_key = EC_1;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_1;
+            msx_button_select_key = EC_STOP;
+            msx_button_right_key = EC_X;
+        break;
+        case 27: // Pyro-Man
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_LSHIFT;
+            msx_button_game_key = EC_1;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_1;
+            msx_button_select_key = EC_STOP;
+        break;
+        case 28: // Roller Ball
+            msx_button_a_key = EC_RETURN;
+            msx_button_b_key = EC_RETURN;
+            msx_button_game_key = EC_STOP;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_STOP;
+            msx_button_select_key = EC_STOP;
+            msx_button_left_key = EC_ESC;
+        break;
+        case 29: // Robo Rumble
+#if GNW_TARGET_MARIO != 0
+            msx_button_a_key = EC_P; // Right Magnet UP
+            msx_button_b_key = EC_L; // Right Magnet Down
+            msx_button_game_key = EC_SPACE; // Start game
+            msx_button_time_key = EC_SPACE; // Start game
+            msx_button_up_key = EC_Q; // Left Magnet UP
+            msx_button_down_key = EC_A; // Left Magnet Down
+            msx_button_right_key = EC_Q; // Left Magnet UP
+            msx_button_left_key = EC_A; // Left Magnet Down
+#else
+            msx_button_a_key = EC_L; // Right Magnet Down
+            msx_button_b_key = EC_L; // Right Magnet Down
+            msx_button_game_key = EC_SPACE; // Start game
+            msx_button_time_key = EC_SPACE; // Start game
+            msx_button_start_key = EC_P; // Right Magnet UP
+            msx_button_select_key = EC_P; // Right Magnet UP
+            msx_button_up_key = EC_Q; // Left Magnet UP
+            msx_button_down_key = EC_A; // Left Magnet Down
+#endif
+        break;
+        case 30: // Brunilda
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_SPACE;
+            msx_button_game_key = EC_SPACE;
+            msx_button_time_key = EC_R;
+            msx_button_start_key = EC_SPACE;
+            msx_button_select_key = EC_R;
         break;
         default:
             controls_found = false;
@@ -1212,8 +1302,8 @@ static void insertGame() {
                     case ROM_KONAMI5:
                     case ROM_KONAMI4:
                     case ROM_KONAMI4NF:
-                        msx_button_a_key_index = 5; /* EC_SPACE index */
-                        msx_button_b_key_index = 52; /* n key index */
+                        msx_button_a_key = EC_SPACE;
+                        msx_button_b_key = EC_N;
                         msx_button_game_key = EC_F4;
                         msx_button_time_key = EC_F3;
                         msx_button_start_key = EC_F1;
@@ -1244,8 +1334,8 @@ static void insertGame() {
             if (!controls_found) {
                 // If game name contains konami, we setup a Konami key mapping
                 if (strcasestr(ACTIVE_FILE->name,"konami")) {
-                    msx_button_a_key_index = 5; /* EC_SPACE index */
-                    msx_button_b_key_index = 52; /* n key index */
+                    msx_button_a_key = EC_SPACE;
+                    msx_button_b_key = EC_N;
                     msx_button_game_key = EC_F4;
                     msx_button_time_key = EC_F3;
                     msx_button_start_key = EC_F1;
