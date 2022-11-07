@@ -582,6 +582,10 @@ struct msx_key_info msx_keyboard[] = {
     {EC_AT,"AT",true},
     {EC_TORIKE,"Torike",true},
     {EC_JIKKOU,"Jikkou",true},
+    {EC_UP,"UP",true},
+    {EC_DOWN,"DOWN",true},
+    {EC_LEFT,"LEFT",true},
+    {EC_RIGHT,"RIGHT",true},
 };
 
 #define RELEASE_KEY_DELAY 5
@@ -1297,6 +1301,78 @@ static void insertGame() {
             msx_button_time_key = EC_R;
             msx_button_start_key = EC_SPACE;
             msx_button_select_key = EC_R;
+        break;
+        case 31: // Castle Excellent
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_GRAPH;
+            msx_button_game_key = EC_F5;
+            msx_button_time_key = EC_F1;
+            msx_button_start_key = EC_F5;
+            msx_button_select_key = EC_F1;
+        break;
+        case 32: // Doki Doki Penguin Land
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_GRAPH;
+            msx_button_game_key = EC_1;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_1;
+            msx_button_select_key = EC_STOP;
+        break;
+        case 33: // Angelic Warrior Deva
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_UP;
+            msx_button_game_key = EC_F1; // Pause
+            msx_button_time_key = EC_F1; // Pause
+            msx_button_start_key = EC_F1; // Pause
+            msx_button_select_key = EC_F1; // Pause
+        break;
+        case 34: // Konami MSX1 Game Collection
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_N;
+            msx_button_game_key = EC_3;
+            msx_button_time_key = EC_2;
+            msx_button_start_key = EC_3;
+            msx_button_select_key = EC_2;
+        break;
+        case 35: // Penguin-Kun Wars 2
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_SPACE;
+            msx_button_game_key = EC_F1;
+            msx_button_time_key = EC_F1;
+            msx_button_start_key = EC_F1;
+            msx_button_select_key = EC_F1;
+        break;
+        case 36: // Stevedore
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_SPACE;
+            msx_button_game_key = EC_STOP;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_STOP;
+            msx_button_select_key = EC_STOP;
+        break;
+        case 37: // The Castle
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_CTRL;
+            msx_button_game_key = EC_F5;
+            msx_button_time_key = EC_F1;
+            msx_button_start_key = EC_F5;
+            msx_button_select_key = EC_F1;
+        break;
+        case 38: // Pleasure Hearts
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_GRAPH;
+            msx_button_game_key = EC_STOP;
+            msx_button_time_key = EC_STOP;
+            msx_button_start_key = EC_STOP;
+            msx_button_select_key = EC_STOP;
+        break;
+        case 39: // Xevious
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_Z;
+            msx_button_game_key = EC_STOP;
+            msx_button_time_key = EC_LSHIFT;
+            msx_button_start_key = EC_STOP;
+            msx_button_select_key = EC_LSHIFT;
         break;
         default:
             controls_found = false;
