@@ -1358,13 +1358,13 @@ static void insertGame() {
             msx_button_start_key = EC_F5;
             msx_button_select_key = EC_F1;
         break;
-        case 38: // Pleasure Hearts
+        case 38: // Youkai Yashiki
             msx_button_a_key = EC_SPACE;
             msx_button_b_key = EC_GRAPH;
             msx_button_game_key = EC_STOP;
-            msx_button_time_key = EC_STOP;
+            msx_button_time_key = EC_F1;
             msx_button_start_key = EC_STOP;
-            msx_button_select_key = EC_STOP;
+            msx_button_select_key = EC_F1;
         break;
         case 39: // Xevious
             msx_button_a_key = EC_SPACE;
@@ -1373,6 +1373,30 @@ static void insertGame() {
             msx_button_time_key = EC_LSHIFT;
             msx_button_start_key = EC_STOP;
             msx_button_select_key = EC_LSHIFT;
+        break;
+        case 40: // Undeadline
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_LSHIFT;
+            msx_button_game_key = EC_ESC;
+            msx_button_time_key = EC_ESC;
+            msx_button_start_key = EC_ESC;
+            msx_button_select_key = EC_ESC;
+        break;
+        case 41: // Valis 2
+            msx_button_a_key = EC_X;
+            msx_button_b_key = EC_Z;
+            msx_button_game_key = EC_F1;
+            msx_button_time_key = EC_ESC;
+            msx_button_start_key = EC_F1;
+            msx_button_select_key = EC_ESC;
+        break;
+        case 42: // Mr Ghost
+            msx_button_a_key = EC_SPACE;
+            msx_button_b_key = EC_LSHIFT;
+            msx_button_game_key = EC_F1;
+            msx_button_time_key = EC_F1;
+            msx_button_start_key = EC_F1;
+            msx_button_select_key = EC_F1;
         break;
         default:
             controls_found = false;
