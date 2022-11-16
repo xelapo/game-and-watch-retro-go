@@ -37691,7 +37691,19 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 				</remark>
 			</disk>
 			<disk>
+				<hash algo="sha1">4b840f5bff7dfd42144b5a34d59a410999f953be</hash>
+				<remark>
+					<text>Disk 1</text>
+				</remark>
+			</disk>
+			<disk>
 				<hash algo="sha1">639b3a95d98a389b3986d4bd59afaf9171dbc64a</hash>
+				<remark>
+					<text>Disk 2</text>
+				</remark>
+			</disk>
+			<disk>
+				<hash algo="sha1">88b37c66c792938c03b25ba5c2039e29ef23aeda</hash>
 				<remark>
 					<text>Disk 2</text>
 				</remark>
@@ -37703,7 +37715,19 @@ This MSX games database is conceived for blueMSX, although it's 99% compatible w
 				</remark>
 			</disk>
 			<disk>
+				<hash algo="sha1">f9dea2185c54c10e11cc22189c624570bb19a99a</hash>
+				<remark>
+					<text>Disk 3</text>
+				</remark>
+			</disk>
+			<disk>
 				<hash algo="sha1">7e4ceffd3777a90c4e2b5a89d6d3300ae543afaf</hash>
+				<remark>
+					<text>Disk 4</text>
+				</remark>
+			</disk>
+			<disk>
+				<hash algo="sha1">a2d05b65a5298c75bd57d4456e188085dc4518fc</hash>
 				<remark>
 					<text>Disk 4</text>
 				</remark>

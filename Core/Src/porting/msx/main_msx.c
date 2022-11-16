@@ -1205,10 +1205,10 @@ static void insertGame() {
             // which is allowing to go to Equipment/Items/System menu
             msx_button_a_key = EC_C;
             msx_button_b_key = EC_X;
-            msx_button_game_key = EC_F2; // Equipment
-            msx_button_time_key = EC_F3; // Items
-            msx_button_start_key = EC_RETURN;
-            msx_button_select_key = EC_F4; // System Menu
+            msx_button_game_key = EC_F2; // System Menu
+            msx_button_time_key = EC_F3; // Speed Menu
+            msx_button_start_key = EC_SPACE;
+            msx_button_select_key = EC_RETURN;
         break;
         case 20: // Ghost
             msx_button_a_key = EC_SPACE;
@@ -1396,10 +1396,10 @@ static void insertGame() {
         case 41: // Valis 2
             msx_button_a_key = EC_X;
             msx_button_b_key = EC_Z;
-            msx_button_game_key = EC_F1;
-            msx_button_time_key = EC_ESC;
-            msx_button_start_key = EC_F1;
-            msx_button_select_key = EC_ESC;
+            msx_button_game_key = EC_RETURN;
+            msx_button_time_key = EC_F1;
+            msx_button_start_key = EC_RETURN;
+            msx_button_select_key = EC_F1;
         break;
         case 42: // Mr Ghost
             msx_button_a_key = EC_SPACE;
