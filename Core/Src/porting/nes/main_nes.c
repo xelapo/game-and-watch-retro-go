@@ -1,3 +1,6 @@
+#include "build/config.h"
+
+#ifdef ENABLE_EMULATOR_NES
 #include <odroid_system.h>
 
 #include <string.h>
@@ -613,3 +616,5 @@ int app_main_nes(uint8_t load_state, uint8_t start_paused, uint8_t save_slot)
 
     return 0;
 }
+
+#endif

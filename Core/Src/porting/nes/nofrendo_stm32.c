@@ -1,3 +1,6 @@
+#include "build/config.h"
+
+#ifdef ENABLE_EMULATOR_NES
 /*
 ** Nofrendo (c) 1998-2000 Matthew Conte (matt@conte.com)
 **
@@ -107,3 +110,5 @@ int nofrendo_start(const char *filename, const char **game_genie_codes, int game
 
    return 0;
 }
+
+#endif

@@ -1,3 +1,6 @@
+#include "build/config.h"
+
+#ifdef ENABLE_EMULATOR_GW
 #include <odroid_system.h>
 #include <string.h>
 #include <assert.h>
@@ -605,3 +608,5 @@ int app_main_gw(uint8_t load_state, uint8_t save_slot)
 
     } // end of loop
 }
+
+#endif

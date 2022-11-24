@@ -1,3 +1,6 @@
+#include "build/config.h"
+
+#if defined(ENABLE_EMULATOR_SMS) || defined(ENABLE_EMULATOR_GG) || defined(ENABLE_EMULATOR_COL) || defined(ENABLE_EMULATOR_SG1000)
 #include <odroid_system.h>
 #include <string.h>
 
@@ -545,3 +548,5 @@ app_main_smsplusgx(uint8_t load_state, uint8_t start_paused, uint8_t save_slot, 
         }
     }
 }
+
+#endif

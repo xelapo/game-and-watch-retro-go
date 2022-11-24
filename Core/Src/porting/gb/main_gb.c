@@ -1,3 +1,6 @@
+#include "build/config.h"
+
+#ifdef ENABLE_EMULATOR_GB
 #include <odroid_system.h>
 #include <string.h>
 #include <assert.h>
@@ -648,3 +651,5 @@ void app_main_gb(uint8_t load_state, uint8_t start_paused, uint8_t save_slot)
         }
     }
 }
+
+#endif
