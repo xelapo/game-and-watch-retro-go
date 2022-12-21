@@ -359,13 +359,15 @@ Amstrad CPC6128 system is a computer with a keyboard and disk drive.
 What is supported :
 - Amstrad CPC6128 system is the only supported system. CPC464 could be added if there is any interest in doing this. Note that CPC464+/6128+ systems are not supported (running a around 40% of their normal speed so it has been removed)
 - Disks images : disks images have to be named with dsk extension. Due to memory constraints, disks images are read only. Multiple disks games are supported and user can change the current disk using the "Pause/Options/Change Dsk" menu. In the case of multiple disks games, only the first disk needs to have a savestate allocation, for this reason it is possible to disable savestate allocation for disk2/3/... of a multiple disk game by adding the _no_save suffix to disk name. To prevent wasting flash memory for savestates that will never be used, it's a good practice to keep original name for first disk of a game (the one you are selecting to start the game) and to add _no_save suffix to other disks of the game. Both standard and extended dsk format are supported, moreover a compression mecanism specific to the G&W has been implemented to reduce the size of disk images. Disk compression is automatically handled during the build process.
+- Normally when the amstrad system starts, it will wait the user to enter a run"file or |CPM command to load the content of the disk. As it's not very friendly, the emulator is detecting the name of the file to run and enter automatically the right commant at startup
 - Sometimes games require the user to enter his name using the keyboard. It is possible to virtually press these keys using the "Pause/Options/Press Key" menu.
+- Amstrad screen resolution is 384x272 pixels while G&W resolution is 320x240. The standard screen mode (with no scaling) will show the screen without the borders which will be ok in most cases, but in some cases games are using borders to show some content. If you want to see the whole Amstrad screen on the G&W, set options/scaling to "fit".
 
 Tape support has not been ported, if there is any interest in adding this, it could be considered.
 
 Note that the Amstrad CPC6128 support is done using caprice32 emulator, any game that is not working correctly using this emulator will not work on the Game & Watch. To fit in the G&W, a some features have been removed, so it's possible that some games running on caprice32 will not work in the G&W port. The emulator port is still in progress, consider it as a preview version.
 
-## Discord, support and discussion
+## Discord, support and discussion 
 
 Please join the [Discord](https://discord.gg/vVcwrrHTNJ).
 
