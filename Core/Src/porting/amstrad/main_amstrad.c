@@ -294,7 +294,9 @@ struct amstrad_key_info amstrad_keyboard[] = {
     {CPC_F7, "F7", true},
     {CPC_F8, "F8", true},
     {CPC_F9, "F9", true},
+    {CPC_ENTER, "Enter", true},
     {CPC_SPACE, "Space", true},
+    {CPC_ESC, "Esc", true},
     {CPC_LSHIFT, "Shift", false},
     {CPC_CONTROL, "Control", false},
     {CPC_1, "1/!", true},
@@ -334,7 +336,6 @@ struct amstrad_key_info amstrad_keyboard[] = {
     {CPC_y, "y", true},
     {CPC_z, "z", true},
     {CPC_FPERIOD, ".", true},
-    {CPC_PIPE, "ù", true},
 };
 
 static odroid_gamepad_state_t previous_joystick_state;
@@ -369,13 +370,13 @@ static bool update_keyboard_cb(odroid_dialog_choice_t *option, odroid_dialog_eve
         selected_key_index = selected_key_index < max_index ? selected_key_index + 1 : 0;
     }
 
-    //    if (eventMap[amstrad_keyboard[selected_key_index].key_id]) {
-    // If key is pressed, add a * in front of key name
-    //        option->value[0] = '*';
-    //        strcpy(option->value+1, amstrad_keyboard[selected_key_index].name);
-    //    } else {
-    strcpy(option->value, amstrad_keyboard[selected_key_index].name);
-    //    }
+    if (vkbd_key_state(cpc_kbd[amstrad_keyboard[selected_key_index].key_id])) {
+        // If key is pressed, add a * in front of key name
+        option->value[0] = '*';
+        strcpy(option->value+1, amstrad_keyboard[selected_key_index].name);
+    } else {
+        strcpy(option->value, amstrad_keyboard[selected_key_index].name);
+    }
 
     if (event == ODROID_DIALOG_ENTER)
     {
@@ -603,7 +604,7 @@ static void amstrad_input_update(odroid_gamepad_state_t *joystick)
     // Handle keyboard emulation
     if (pressed_key != NULL)
     {
-        vkbd_key(cpc_kbd[pressed_key->key_id], 1);
+        vkbd_key(cpc_kbd[pressed_key->key_id], !vkbd_key_state(cpc_kbd[pressed_key->key_id]));
         if (pressed_key->auto_release)
         {
             release_key = pressed_key;
