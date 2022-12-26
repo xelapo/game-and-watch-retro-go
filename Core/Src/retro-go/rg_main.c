@@ -733,7 +733,7 @@ void app_start_logo()
 
     const retro_logo_image* logos[] =   {&logo_nitendo, &logo_sega,     &logo_nitendo, &logo_sega,  &logo_nitendo, &logo_pce,    &logo_sega,  &logo_coleco, &logo_microsoft, &logo_watara, &logo_sega,  &logo_atari,   &logo_amstrad};
     const retro_logo_image* headers[] = {&header_gb,    &header_sg1000, &header_nes,   &header_gg,  &header_gw,    &header_pce,  &header_sms, &header_col,  &header_msx,     &header_wsv,  &header_gen, &header_a7800, &header_amstrad};
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 13; i++)
     {
         if (l_top == (retro_logo_image *)headers[i])
             l_bot = (retro_logo_image *)logos[i];
