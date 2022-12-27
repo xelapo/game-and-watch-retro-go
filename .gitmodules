@@ -3,7 +3,7 @@
 	url = https://github.com/sylverb/retro-go-stm32
 [submodule "LCD-Game-Emulator"]
 	path = LCD-Game-Emulator
-	url = https://github.com/sylverb/LCD-Game-Emulator.git
+	url = https://github.com/xelapo/LCD-Game-Emulator.git
 [submodule "blueMSX-go"]
 	path = blueMSX-go
 	url = https://github.com/sylverb/blueMSX-go.git
